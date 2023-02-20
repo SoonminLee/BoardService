@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="/public/style.css" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+  <title>Hello, world!</title>
+</head>
+
+<body>
+  <%- include ('nav.html') %>
+
+    <div class="board-area">
+      <table class="table table-hover">
+        <thead>
+          <tr bgcolor="#BDBDBD" font color="white">
+            <th>번호</th>
+            <th>제목</th>
+            <th>글쓴이</th>
+            <th>작성일</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>엌 아래글 진짜 관리자임?</td>
+            <td>ㅇㅇ</td>
+            <td>2020.04.23</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>본인 방금 추천 많이 받아서 개념글 상상함</td>
+            <td>운영자</td>
+            <td>2020.04.23</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostEdit">수정하기</button>
+        <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostWrite">작성하기</button>
+      </div>
+      <nav aria-label="Page navigation" style="    display: flex;justify-content: center;align-content: center;">
+        <ul class="pagination">
+          <li class="page-item"><a class="page-link" href="#">이전</a></li>
+          <li class="page-item"><a class="page-link" href="#">1</a></li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">3</a></li>
+          <li class="page-item"><a class="page-link" href="#">다음</a></li>
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+      // 작성하기 버튼 클릭시 작성페이지로 이동
+      $('#PostWrite').click(function(){
+        location.replace('/write');
+      })
+    </script>
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"></script>
+</body>
+
+</html>
