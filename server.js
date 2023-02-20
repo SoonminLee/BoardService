@@ -57,7 +57,7 @@ app.get('/', function (요청, 응답) {
     skip(perPage *(page - 1)).
     limit(perPage).toArray(function(에러,퍼페이지결과){
       totalPage = Math.ceil(total / perPage);
-        응답.render(__dirname + '/views/index.ejs',{ totalPage : totalPage, posts : 퍼페이지결과,  }) 
+        응답.render(__dirname + '/views/index.ejs',{ totalPage : totalPage, posts : 퍼페이지결과, perPage : perPage }) 
     })
   })
 });
@@ -107,7 +107,7 @@ app.get('/userIndex', 로그인했냐, function (요청, 응답) {
     skip(perPage *(page - 1)).
     limit(perPage).toArray(function(에러,퍼페이지결과){
       totalPage = Math.ceil(total / perPage);
-        응답.render(__dirname + '/views/userIndex.ejs',{사용자: 요청.user, totalPage : totalPage, posts : 퍼페이지결과,  }) 
+        응답.render(__dirname + '/views/userIndex.ejs',{사용자: 요청.user, totalPage : totalPage, posts : 퍼페이지결과, perPage : perPage }) 
     })
   })
 });
