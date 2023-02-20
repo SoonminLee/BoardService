@@ -1,5 +1,8 @@
 const express = require('express');
 const app = express();
+const dayjs = require('dayjs');
+const day = dayjs();
+
 
 // socket.io 셋팅코드
 const http = require('http').createServer(app);
@@ -20,7 +23,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 
-app.use(session({secret : '비밀코드', resave : true, saveUninitialized: false}));
+app.use(session({ secret: '비밀코드', resave: true, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 //===========================
@@ -43,13 +46,34 @@ MongoClient.connect(url, function (에러, client) {
 
 // 홈페이지로 이동
 app.get('/', function (요청, 응답) {
-  응답.render(__dirname + '/views/index.ejs')
+  var page = Number(요청.query.pageNum || 1);
+  var perPage = Number(요청.query.perPage || 10);
+
+  var total;
+  var totalPage;
+  db.collection('counter').findOne({ }, function (에러, 카운터결과) {
+    total = 카운터결과.totalPost
+    db.collection('post').find().
+    skip(perPage *(page - 1)).
+    limit(perPage).toArray(function(에러,퍼페이지결과){
+      totalPage = Math.ceil(total / perPage);
+        응답.render(__dirname + '/views/index.ejs',{ totalPage : totalPage, posts : 퍼페이지결과,  }) 
+    })
+  })
 });
+//===========================
+
+// 홈페이지로 이동
+// app.get('/', function (요청, 응답) {
+//   db.collection('post').find().toArray(function (에러, 결과) {
+//     응답.render(__dirname + '/views/index.ejs',{ posts: 결과 })
+// });
+// });
 //===========================
 
 // 작성페이지로 이동
 app.get('/write', 로그인했냐, function (요청, 응답) {
-  응답.render(__dirname + '/views/write.ejs',{ 사용자 : 요청.user })
+  응답.render(__dirname + '/views/write.ejs', { 사용자: 요청.user })
 });
 //=====================================
 
@@ -64,9 +88,29 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
-app.get('/userIndex',로그인했냐, function (요청, 응답) {
-  응답.render('userIndex.ejs', { 사용자 : 요청.user })
-})
+// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
+//   db.collection('post').find().toArray(function (에러, 결과) {
+//   응답.render('userIndex.ejs', { 사용자: 요청.user, posts: 결과 })
+//   })
+// })
+//=====================================
+// /userIndex 페이지로 이동(로그인한사람만 입장)
+app.get('/userIndex', 로그인했냐, function (요청, 응답) {
+  var page = Number(요청.query.pageNum || 1);
+  var perPage = Number(요청.query.perPage || 10);
+
+  var total;
+  var totalPage;
+  db.collection('counter').findOne({ }, function (에러, 카운터결과) {
+    total = 카운터결과.totalPost
+    db.collection('post').find().
+    skip(perPage *(page - 1)).
+    limit(perPage).toArray(function(에러,퍼페이지결과){
+      totalPage = Math.ceil(total / perPage);
+        응답.render(__dirname + '/views/userIndex.ejs',{사용자: 요청.user, totalPage : totalPage, posts : 퍼페이지결과,  }) 
+    })
+  })
+});
 //=====================================
 
 
@@ -76,29 +120,28 @@ app.post('/login', passport.authenticate('local', {
   failureRedirect: '/fail'
 }), function (요청, 응답) {
   // 1. 로그인하면 아이디 비번 검사
-    응답.redirect('/userIndex')
-  
+  응답.redirect('/userIndex')
+
 })
 // logout 기능
-app.get('/logout', function (req, res){
+app.get('/logout', function (req, res) {
   // req.logout();
   // res.redirect('/');
-  
+
   req.session.destroy(() => {
     res.clearCookie('connect.sid');
     res.redirect('/');
-}); 
+  });
 })
 //==========================================
 
-
-function 로그인했냐(요청, 응답, next){
-  if (요청.user){
-      next()
+function 로그인했냐(요청, 응답, next) {
+  if (요청.user) {
+    next()
   } else {
-      // 응답.write("<script>('로그인 하고 오십쇼')</script>")
-      응답.send('로그인하고 오십쇼')
-      응답.redirect('/login')
+    응답.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    응답.write("<script>alert('로그인하고 오십시오')</script>")
+    응답.write("<script>window.location=\"http://localhost:8080/login\"</script>")
   }
 }
 
@@ -111,16 +154,16 @@ passport.use(new LocalStrategy({
 }, function (입력한아이디, 입력한비번, done) {  // 여기부터 끝까지는 아이디/비번을 DB와 비교하여 검증하는 코드
   // console.log('입력한아이디랑입력한비번'+입력한아이디, 입력한비번);
   db.collection('user').findOne({ userId: 입력한아이디 }, function (에러, 결과) {
-      if (에러) return done(에러)
-      // 여기부터 중요! DB에 아이디가 없을때 실행하고, 있긴한데 비번이 틀렸을때 실행(if문으로 분기)
-      // done(서버에러 : 보통 null , 성공시사용자DB데이터 : 아이디/비번 안맞을때 false, 에러메세지)
-      if (!결과) return done(null, false, { message: '존재하지않는 아이디요' })
-      
-      if (createHashedPassword(입력한비번) == 결과.userPw) {
-          return done(null, 결과)
-      } else {
-          return done(null, false, { message: '비번틀렸어요' })
-      }
+    if (에러) return done(에러)
+    // 여기부터 중요! DB에 아이디가 없을때 실행하고, 있긴한데 비번이 틀렸을때 실행(if문으로 분기)
+    // done(서버에러 : 보통 null , 성공시사용자DB데이터 : 아이디/비번 안맞을때 false, 에러메세지)
+    if (!결과) return done(null, false, { message: '존재하지않는 아이디요' })
+
+    if (createHashedPassword(입력한비번) == 결과.userPw) {
+      return done(null, 결과)
+    } else {
+      return done(null, false, { message: '비번틀렸어요' })
+    }
   })
 }));
 
@@ -132,24 +175,37 @@ passport.serializeUser(function (user, done) {
 // 이 세션 데이터를 가진 사람을 DB에서 찾아주세요(마이페이지 접속시 발동)
 passport.deserializeUser(function (아이디, done) {
   // deserializeUser() : DB에서 위에 있던 user.id로 유저를 찾은 뒤에 유저 정보를 아래 done의 중괄호에 넣음
-  db.collection('user').findOne({ userId: 아이디 }, function (에러, 결과) {
-      done(null, 결과)
+  db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
+    done(null, 아이디결과)
+  })
+})
+passport.deserializeUser(function (닉네임, done) {
+  db.collection('user').findOne({ userNick: 닉네임 }, function (에러, 닉네임결과) {
+    done(null, 닉네임결과)
   })
 })
 //==========================================
 
-// 작성페이지 DB에 저장
-app.post('/write', function (요청, 응답) {
+// 글 작성페이지 DB에 저장
+app.post('/write', 로그인했냐, function (요청, 응답) {
   db.collection('counter').findOne({ name: '게시물개수' }, function (에러, 결과) {
+    // var date = day.format('YYYY-MM-DD HH:mm:ss')
     if (에러) { return console.log(에러) }
     var 총게시물개수 = 결과.totalPost;
-    var 저장할거 = { _id: 총게시물개수 + 1, title: 요청.body.Title, PostContent: 요청.body.PostContent }
+    var 저장할거 = { 
+      _id: 총게시물개수 + 1, 
+      userId: 요청.user.userId, 
+      userNick: 요청.user.userNick, 
+      title: 요청.body.Title, 
+      PostContent: 요청.body.PostContent,
+      date: day.format('YYYY-MM-DD HH:mm:ss')
+    }
     db.collection('post').insertOne(저장할거, function (에러, 결과) {
       console.log('저장완료');
       db.collection('counter').updateOne({ name: '게시물개수' }, { $inc: { totalPost: 1 } }, function (에러, 결과) {
         if (에러) { return console.log(에러) }
         console.log('게시물 개수 + 1')
-        응답.redirect('/')
+        응답.redirect('/userIndex')
       })
     });
   });
