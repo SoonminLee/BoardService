@@ -49,15 +49,18 @@ app.get('/', function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
 
-  var total;
+  var TotalPost;
   var totalPage;
-  db.collection('counter').findOne({ }, function (에러, 카운터결과) {
-    total = 카운터결과.totalPost
-    db.collection('post').find().
-    skip(perPage *(page - 1)).
-    limit(perPage).toArray(function(에러,퍼페이지결과){
-      totalPage = Math.ceil(total / perPage);
-        응답.render(__dirname + '/views/index.ejs',{ totalPage : totalPage, posts : 퍼페이지결과, perPage : perPage }) 
+  db.collection('post').find().toArray(function(에러,결과){
+    TotalPost = 결과.length
+    db.collection('counter').updateOne({name:"게시물개수"}, {$set: {totalPost: TotalPost}},function(에러,결과){
+      // console.log('index에서 총게시물수 업데이트 완료')
+      db.collection('post').find().
+        skip(perPage * (page - 1)).
+        limit(perPage).toArray(function (에러, 퍼페이지결과) {
+          totalPage = Math.ceil(TotalPost / perPage);
+          응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, posts: 퍼페이지결과, })
+        })
     })
   })
 });
@@ -88,32 +91,67 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
-// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
-//   db.collection('post').find().toArray(function (에러, 결과) {
-//   응답.render('userIndex.ejs', { 사용자: 요청.user, posts: 결과 })
-//   })
-// })
-//=====================================
-// /userIndex 페이지로 이동(로그인한사람만 입장)
+
 app.get('/userIndex', 로그인했냐, function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
-
-  var total;
   var totalPage;
-  db.collection('counter').findOne({ }, function (에러, 카운터결과) {
-    total = 카운터결과.totalPost
-    db.collection('post').find().
-    skip(perPage *(page - 1)).
-    limit(perPage).toArray(function(에러,퍼페이지결과){
-      totalPage = Math.ceil(total / perPage);
-        응답.render(__dirname + '/views/userIndex.ejs',{사용자: 요청.user, totalPage : totalPage, posts : 퍼페이지결과, perPage : perPage }) 
+  var TotalPost;
+  db.collection('post').find().toArray(function(에러,결과){
+    TotalPost = 결과.length
+    db.collection('counter').updateOne({name:"게시물개수"}, {$set: {totalPost: TotalPost}},function(에러,결과){
+      // console.log('userIndex에서 총게시물수 업데이트 완료')
+      db.collection('post').find().
+        skip(perPage * (page - 1)).
+        limit(perPage).toArray(function (에러, 퍼페이지결과) {
+          totalPage = Math.ceil(TotalPost / perPage);
+          응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, totalPage: totalPage, posts: 퍼페이지결과, })
+        })
     })
   })
 });
 //=====================================
 
 
+//상세보기 페이지
+// detail로 접속하면 detail.ejs 보여주십쇼
+app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
+  var title;
+  var PostContent;
+  db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
+    title = 결과.title;
+    PostContent = 결과.PostContent;
+    응답.render('detail.ejs', { 사용자: 요청.user, postNum: 결과._id, postTitle: title, postContent: PostContent })
+  })
+})
+//==========================================
+// 글 삭제하기 기능
+app.delete('/delete', 로그인했냐, function (요청, 응답) {
+  // console.log('유저아이디' + 요청.user.userId)
+  var 삭제할글번호 = parseInt(요청.body._id);
+  var 삭제할데이터 = { _id: 삭제할글번호, userId: 요청.user.userId }
+  db.collection('post').deleteOne(삭제할데이터, function (에러, 결과) {
+    if (에러) { return console.log(에러) }
+    응답.send('삭제완료')
+  })
+})
+//==========================================
+// 글 수정하기 기능
+app.put('/edit', 로그인했냐, function (요청, 응답) {
+  // 폼에 담긴 제목과 날짜 데이터를 db.collection에 업데이트함
+  var 수정할글번호 = parseInt(요청.body._id)
+  var 수정할데이터 = { 
+    title: 요청.body.editTitle,
+    PostContent: 요청.body.editPostContent
+  }
+  db.collection('post').
+  updateOne({ _id: 수정할글번호, userId: 요청.user.userId },
+    { $set: 수정할데이터 }, function (에러, 결과) {
+      if (에러) { return console.log(에러) }
+      응답.send('수정완료');
+      })
+})
+//==========================================
 
 // login 기능
 app.post('/login', passport.authenticate('local', {
@@ -192,11 +230,13 @@ app.post('/write', 로그인했냐, function (요청, 응답) {
     // var date = day.format('YYYY-MM-DD HH:mm:ss')
     if (에러) { return console.log(에러) }
     var 총게시물개수 = 결과.totalPost;
-    var 저장할거 = { 
-      _id: 총게시물개수 + 1, 
-      userId: 요청.user.userId, 
-      userNick: 요청.user.userNick, 
-      title: 요청.body.Title, 
+
+    var 저장할거 = {
+      _id: 총게시물개수 + 1,
+      userId: 요청.user.userId,
+      userNick: 요청.user.userNick,
+      title: 요청.body.Title,
+
       PostContent: 요청.body.PostContent,
       date: day.format('YYYY-MM-DD HH:mm:ss')
     }
@@ -242,5 +282,6 @@ app.post('/signUp', function (요청, 응답) {
   })
 })
 //==========================================
+
 
 
