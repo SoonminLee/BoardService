@@ -45,25 +45,6 @@ MongoClient.connect(url, function (에러, client) {
 
 
 // 홈페이지로 이동
-// app.get('/', function (요청, 응답) {
-//   var page = Number(요청.query.pageNum || 1);
-//   var perPage = Number(요청.query.perPage || 10);
-
-//   var total;
-//   var totalPage;
-//   db.collection('counter').findOne({}, function (에러, 카운터결과) {
-//     total = 카운터결과.totalPost
-//     db.collection('post').find().
-//       skip(perPage * (page - 1)).
-//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
-//         totalPage = Math.ceil(total / perPage);
-//         응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, posts: 퍼페이지결과, })
-//       })
-//   })
-// });
-//===========================
-
-// 홈페이지로 이동
 app.get('/', function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -82,7 +63,6 @@ app.get('/', function (요청, 응답) {
     })
   })
 });
-
 //===========================
 
 // 작성페이지로 이동
@@ -121,25 +101,6 @@ app.get('/userIndex', 로그인했냐, function (요청, 응답) {
   })
 });
 //=====================================
-// /userIndex 페이지로 이동(로그인한사람만 입장)
-// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
-//   var page = Number(요청.query.pageNum || 1);
-//   var perPage = Number(요청.query.perPage || 10);
-
-//   var total;
-//   var totalPage;
-//   db.collection('counter').findOne({}, function (에러, 카운터결과) {
-//     total = 카운터결과.totalPost
-//     db.collection('post').find().
-//       skip(perPage * (page - 1)).
-//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
-//         totalPage = Math.ceil(total / perPage);
-//         응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, totalPage: totalPage, posts: 퍼페이지결과, })
-//       })
-//   })
-// });
-//=====================================
-
 
 
 //상세보기 페이지
@@ -180,15 +141,6 @@ app.put('/edit', 로그인했냐, function (요청, 응답) {
       응답.send('수정완료');
       })
 })
-//==========================================
-//test
-// app.get('/test', function(){
-//   var totalPost;
-//   db.collection('post').find().toArray(function(에러,결과){
-//     totalPost = 결과.length
-//     console.log("총게시물 수 = "+totalPost);
-//   })
-// })
 //==========================================
 
 // login 기능
