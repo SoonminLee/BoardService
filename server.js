@@ -48,6 +48,7 @@ MongoClient.connect(url, function (에러, client) {
 app.get('/', function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
+
   var TotalPost;
   var totalPage;
   db.collection('post').find().toArray(function(에러,결과){
@@ -63,6 +64,14 @@ app.get('/', function (요청, 응답) {
     })
   })
 });
+//===========================
+
+// 홈페이지로 이동
+// app.get('/', function (요청, 응답) {
+//   db.collection('post').find().toArray(function (에러, 결과) {
+//     응답.render(__dirname + '/views/index.ejs',{ posts: 결과 })
+// });
+// });
 //===========================
 
 // 작성페이지로 이동
@@ -82,6 +91,7 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
+
 app.get('/userIndex', 로그인했냐, function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -220,11 +230,13 @@ app.post('/write', 로그인했냐, function (요청, 응답) {
     // var date = day.format('YYYY-MM-DD HH:mm:ss')
     if (에러) { return console.log(에러) }
     var 총게시물개수 = 결과.totalPost;
+
     var 저장할거 = {
       _id: 총게시물개수 + 1,
       userId: 요청.user.userId,
       userNick: 요청.user.userNick,
       title: 요청.body.Title,
+
       PostContent: 요청.body.PostContent,
       date: day.format('YYYY-MM-DD HH:mm:ss')
     }
