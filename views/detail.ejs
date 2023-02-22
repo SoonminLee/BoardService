@@ -58,8 +58,6 @@
                 var 글번호 = e.target.dataset.id;
                 var 글제목 = $('#postTitle').val();
                 var 글내용 = $('#postContent').val();
-                console.log('수정페이지 글제목 = '+ 글제목)
-                console.log('수정페이지 글내용 = '+ 글내용)
                 $.ajax({
                     method: 'PUT',
                     url: '/edit',

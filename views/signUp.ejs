@@ -43,7 +43,6 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script>
             $('#signUpButton').click(function() {
-                // console.log(1)
                 var 이름 = $('#userName').val();
                 var 아이디 = $('#userId').val();
                 var 비밀번호 = $('#userPw').val();
@@ -53,17 +52,17 @@
                 if (이름 == '') {
                     alert('이름은 필수 항목이므로 공백이 있으면 안됩니다.')
                 }
-                else if (아이디 == '') {//
+                else if (아이디 == '') {
                     alert('아이디는 필수 항목이므로 공백이 있으면 안됩니다.')
                 }  else if (/^[a-zA-Z0-9]{3,10}$/.test(아이디) == false) {
                     alert('아이디는 대소문자와 숫자이며 3~10글자로 설정해야합니다.')
-                } else if (비밀번호 == '') {//
+                } else if (비밀번호 == '') {
                     alert('비밀번호는 필수 항목이므로 공백이 있으면 안됩니다.')
                 } else if (/^[a-zA-Z0-9]{6,12}$/.test(비밀번호) == false) {
                     alert('비밀번호는 대소문자와 숫자(6~12글자)로 설정해야합니다.')
-                } else if (닉네임 == '') {//
+                } else if (닉네임 == '') {
                     alert('닉네임은 필수 항목이므로 공백이 있으면 안됩니다.')
-                } else if (이메일 == '') {//
+                } else if (이메일 == '') {
                     alert('이메일은 필수 항목이므로 공백이 있으면 안됩니다.')
                 } else if(/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/.test(이메일) == false){
                     alert('이메일의 형식이 잘못되었습니다.')
@@ -93,8 +92,6 @@
                         }
                     })
                 }
-                // console.log(2)
-                // console.log('ejs 아디닉넴이멜 결과'+아이디,닉네임,이메일);
             })
         </script>
 
