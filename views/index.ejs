@@ -28,7 +28,7 @@
         </thead>
         <tbody>
         <% for (let i=0; i < posts.length; i++){ %>
-            <tr>
+            <tr style="cursor:pointer" onclick="location.href='http://localhost:8080/detail/<%= posts[i]._id %>'">
               <td><%= posts[i]._id %></td>
               <td><%= posts[i].title %></td>
               <td><%= posts[i].userNick %></td>
