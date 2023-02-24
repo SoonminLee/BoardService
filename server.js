@@ -64,7 +64,7 @@ app.get('/', function (요청, 응답) {
   })
 });
 //===========================
-// 작성페이지로 이동
+// 작성페이지로 이동 
 app.get('/write', 로그인했냐, function (요청, 응답) {
   응답.render(__dirname + '/views/write.ejs', { 사용자: 요청.user })
 });
