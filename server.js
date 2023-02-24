@@ -101,7 +101,18 @@ app.get('/userIndex', 로그인했냐, function (요청, 응답) {
 //=====================================
 
 //상세보기 페이지
-// detail로 접속하면 detail.ejs 보여주십쇼
+// 로그인 X 사람들에게 보여주는 게시글 목록
+app.get('/NoLogIndetail/:id', function (요청, 응답) {
+  var title;
+  var PostContent;
+  db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
+    title = 결과.title;
+    PostContent = 결과.PostContent;
+    응답.render('NoLogIndetail.ejs', { postNum: 결과._id, postTitle: title, postContent: PostContent })
+  })
+})
+//==========================================
+// 로그인 O 사람들에게 보여주는 게시글 목록
 app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
   var title;
   var PostContent;
@@ -165,8 +176,8 @@ function 로그인했냐(요청, 응답, next) {
     next()
   } else {
     응답.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    응답.write("<script>alert('로그인하고 오십시오')</script>")
-    응답.write("<script>window.location=\"http://localhost:8080/login\"</script>")
+    응답.write("<script>alert('Please Login')</script>")
+    응답.write("<script>window.location=\"/login\"</script>")
   }
 }
 

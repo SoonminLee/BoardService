@@ -28,7 +28,7 @@
         </thead>
         <tbody>
         <% for (let i=0; i < posts.length; i++){ %>
-            <tr style="cursor:pointer" onclick="location.href='http://localhost:8080/detail/<%= posts[i]._id %>'">
+            <tr style="cursor:pointer" onclick="location.href='/NoLogIndetail/<%= posts[i]._id %>'">
               <td><%= posts[i]._id %></td>
               <td><%= posts[i].title %></td>
               <td><%= posts[i].userNick %></td>
@@ -42,7 +42,7 @@
       <nav aria-label="Page navigation" style="    display: flex;justify-content: center;align-content: center;">
         <ul class="pagination">
           <% for (let i=1; i <= totalPage; i++){ %>
-          <li class="page-item"><a class="page-link" href="http://localhost:8080/?pageNum=<%= i %>&perPage=<%= perPage %>"><%= i %></a></li>
+          <li class="page-item"><a class="page-link" href="/?pageNum=<%= i %>&perPage=<%= perPage %>"><%= i %></a></li>
           <% } %>
         </ul>
     </div>

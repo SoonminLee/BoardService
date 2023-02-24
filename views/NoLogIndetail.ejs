@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    <%- include ('usernav.html') %>
+    <%- include ('nav.html') %>
 
         <h4>상세페이지</h4>
         <div class="container">
@@ -27,51 +27,11 @@
                 <textarea class="form-control" id="postContent" rows="3"
                     name="PostContent" ><%= postContent %></textarea>
             </div>
-            <div style="display: flex; justify-content: flex-end;">
-                <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostEdit"
-                    data-id="<%= postNum %>">수정하기</button>
-                <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostDelete"
-                    data-id="<%= postNum %>">삭제하기</button>
-            </div>
         </div>
 
 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script>
-
-            //글삭제
-            $('#PostDelete').click(function (e) {
-                var 글번호 = e.target.dataset.id;
-                $.ajax({
-                    method: 'DELETE',
-                    url: '/delete',
-                    data: { _id: 글번호 },
-                    success: function (data) {
-                        $(location).attr("href", "/userIndex")
-                    }
-                })
-
-            })
-
-            //글수정
-            $('#PostEdit').click(function (e) {
-                var 글번호 = e.target.dataset.id;
-                var 글제목 = $('#postTitle').val();
-                var 글내용 = $('#postContent').val();
-                $.ajax({
-                    method: 'PUT',
-                    url: '/edit',
-                    data: { 
-                        _id: 글번호,
-                        editTitle: 글제목,
-                        editPostContent: 글내용,
-                        success: function(data){
-                            console.log("수정완료요")
-                            $(location).attr("href", "/userIndex")
-                        }
-                    }
-                })
-            })
 
 
         </script>
