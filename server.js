@@ -281,5 +281,66 @@ app.post('/signUp', function (요청, 응답) {
 })
 //==========================================
 
+//검색기능
+var searchWord = 0;
+// 누군가 /search 경로로 진입시 List에서 검색했던 검색어와 DB에서 일치하는 title 다 찾아줌
+app.get('/search',(요청, 응답) => {
+  console.log("1번글 입력 = "+요청.query.value);
+  var 검색조건 = [
+    {
+      $search: {
+        index: 'titleSearch',
+        text: {
+          query: 요청.query.value,
+          path: 'title'  // title, date 둘다 찾고 싶으면 ['title', 'date']
+        }
+      }
+    },
+    // { $sort : {_id : 1}}, // _id 순서로 오름차순, -1은 내림차순
+    // { $limit : 10 }, // 10개만 가져와주세요
+    // { $project : { title : 1, _id : 0, score: { $meta: "searchScore"}}} // 1은 가져오고 0은 안가져오고, score는 mongoDB가 검색어 적합도에대한 점수를 나타내줌
+  ]
+  console.log(검색조건)
+  db.collection('post').aggregate(검색조건).toArray((에러, 결과)=>{
+    searchWord = 결과;
+    console.log("서치워드 = "+ 결과)
+    응답.redirect('/indexList');
+  })
+})
+
+// 누군가 /usersearch 경로로 진입시 List에서 검색했던 검색어와 DB에서 일치하는 title 다 찾아줌
+app.get('/usersearch',(요청, 응답) => {
+  console.log("1번글 입력 = "+요청.query.value);
+  var 검색조건 = [
+      {
+          $search: {
+            index: 'titleSearch',
+            text: {
+              query: 요청.query.value,
+              path: 'title'  // title, date 둘다 찾고 싶으면 ['title', 'date']
+            }
+          }
+        },
+        // { $sort : {_id : 1}}, // _id 순서로 오름차순, -1은 내림차순
+        // { $limit : 10 }, // 10개만 가져와주세요
+        // { $project : { title : 1, _id : 0, score: { $meta: "searchScore"}}} // 1은 가져오고 0은 안가져오고, score는 mongoDB가 검색어 적합도에대한 점수를 나타내줌
+  ]
+  console.log(검색조건)
+  db.collection('post').aggregate(검색조건).toArray((에러, 결과)=>{
+      searchWord = 결과;
+      console.log("서치워드 = "+ 결과)
+  응답.redirect('/userindexList');
+  })
+})
+
+// 누군가 /indexList 경로로 진입하면 indexList 페이지 보여줌
+app.get('/indexList', function(요청,응답){
+    응답.render('indexList.ejs', { searchWord: searchWord })
+})
+// 누군가 /userindexList 경로로 진입하면 indexList 페이지 보여줌
+app.get('/userindexList', function(요청,응답){
+    응답.render('userindexList.ejs', {사용자: 요청.user , searchWord: searchWord })
+})
+//==========================================
 
 

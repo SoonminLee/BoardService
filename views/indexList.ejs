@@ -14,7 +14,7 @@
 </head>
 
 <body>
-  <%- include ('usernav.html') %>
+  <%- include ('nav.html') %>
 
     <div class="board-area">
       <table class="table table-hover">
@@ -27,25 +27,19 @@
           </tr>
         </thead>
         <tbody>
-          <% for (let i=0; i < posts.length; i++){ %>
-            <tr style="cursor:pointer" onclick="location.href='/detail/<%= posts[i]._id %>'">
-              <td><%= posts[i]._id %></td>
-              <td><%= posts[i].title %></td>
-              <td><%= posts[i].userNick %></td>
-              <td><%= posts[i].date %></td>
+        <% for (let i=0; i < searchWord.length; i++){ %>
+            <tr style="cursor:pointer" onclick="location.href='/NoLogIndetail/<%= searchWord[i]._id %>'">
+              <td><%= searchWord[i]._id %></td>
+              <td><%= searchWord[i].title %></td>
+              <td><%= searchWord[i].userNick %></td>
+              <td><%= searchWord[i].date %></td>
             </tr>
             <% } %>
-        </tbody>
+          </tbody>
       </table>
       <div style="display: flex; justify-content: flex-end;">
-        <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostWrite">작성하기</button>
       </div>
-      <nav aria-label="Page navigation" style="    display: flex;justify-content: center;align-content: center;">
-        <ul class="pagination">
-          <% for (let i=1; i <= totalPage; i++){ %>
-            <li class="page-item"><a class="page-link" href="/userIndex?pageNum=<%= i %>&perPage=<%= perPage %>"><%= i %></a></li>
-            <% } %>
-        </ul>
+ 
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -55,30 +49,21 @@
         location.replace('/write');
       })
 
-      $('#userLogout').click(function(){
-        $.ajax({
-          url : "/logout",
-          type : "GET",
-          success : function(결과){
-            location.replace('/')
-          }
-        })
+      $('#TitleSearch').click(function(){
+        var 입력값 = $('#TitleSearch-input').val()
+        console.log('입력값은 = '+입력값);
+        window.location.replace(`/search?value=${입력값}`)
       })
 
-      $('#userTitleSearch').click(function(){
-        var 입력값 = $('#userTitleSearch-input').val()
-        console.log('입력값은 = '+입력값);
-        window.location.replace(`/usersearch?value=${입력값}`)
-      })
     </script>
 
 
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <!-- <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
       integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-      crossorigin="anonymous"></script> -->
+      crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
       integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
       crossorigin="anonymous"></script>
