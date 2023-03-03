@@ -117,9 +117,16 @@ app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
   var title;
   var PostContent;
   db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
-    title = 결과.title;
-    PostContent = 결과.PostContent;
-    응답.render('detail.ejs', { 사용자: 요청.user, postNum: 결과._id, postTitle: title, postContent: PostContent })
+    if(결과.imagename){
+      title = 결과.title;
+      PostContent = 결과.PostContent;
+      imagename = 결과.imagename
+      응답.render('detail.ejs', { 사용자: 요청.user, postNum: 결과._id, postTitle: title, postContent: PostContent, imagename: imagename})
+    }else{
+      title = 결과.title;
+      PostContent = 결과.PostContent;
+      응답.render('detail.ejs', { 사용자: 요청.user, postNum: 결과._id, postTitle: title, postContent: PostContent })
+    }
   })
 })
 //==========================================
@@ -222,21 +229,59 @@ passport.deserializeUser(function (닉네임, done) {
 })
 //==========================================
 
-// 글 작성페이지 DB에 저장
-app.post('/write', 로그인했냐, function (요청, 응답) {
+
+//이미지 업로드
+let multer = require('multer');
+var storage = multer.diskStorage({
+    destination : function(req, file, cb){
+        cb(null, './public/image') // 이미지가 저장될 경로
+    },
+    filename : function(req, file,  cb){
+        cb(null, file.originalname) // 이미지 저장될때 기존 이름 그대로 사용하겠다는 의미 
+    },
+    // filefilter를 이용해 업로드한 파일 확장자를 정해주기위한 코드
+    // path는 node.js 내장 라이브러리 파일의 경로, 이름, 확장자 등을 알아낼 수 있음.
+    filefilter : function (req, file, callback) {
+        var ext = path.extname(file.originalname);
+        if(ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+            return callback(new Error('PNG, JPG만 업로드하세요'))
+        }
+        callback(null, true)
+    },
+    // limit는 파일의 사이즈 제한 걸고싶을때 (1024*1024는 1MB)
+    limits:{
+        fileSize: 1024 * 1024
+    }
+})
+var upload = multer({storage : storage});
+//==========================================
+
+
+// 글 작성페이지 DB에 저장 / 이미지 업로드 기능 추가
+app.post('/write', 로그인했냐, upload.single('profile'), function (요청, 응답) {
   db.collection('counter').findOne({ name: '게시물개수' }, function (에러, 결과) {
     // var date = day.format('YYYY-MM-DD HH:mm:ss')
     if (에러) { return console.log(에러) }
     var 총게시물개수 = 결과.totalPost;
-
-    var 저장할거 = {
-      _id: 총게시물개수 + 1,
-      userId: 요청.user.userId,
-      userNick: 요청.user.userNick,
-      title: 요청.body.Title,
-
-      PostContent: 요청.body.PostContent,
-      date: day.format('YYYY-MM-DD HH:mm:ss')
+    if(요청.file){
+      var 저장할거 = {
+        _id: 총게시물개수 + 1,
+        userId: 요청.user.userId,
+        userNick: 요청.user.userNick,
+        title: 요청.body.Title,
+        imagename: 요청.file.originalname,
+        PostContent: 요청.body.PostContent,
+        date: day.format('YYYY-MM-DD HH:mm:ss')
+      }
+    } else{
+      var 저장할거 = {
+        _id: 총게시물개수 + 1,
+        userId: 요청.user.userId,
+        userNick: 요청.user.userNick,
+        title: 요청.body.Title,
+        PostContent: 요청.body.PostContent,
+        date: day.format('YYYY-MM-DD HH:mm:ss')
+      }
     }
     db.collection('post').insertOne(저장할거, function (에러, 결과) {
       console.log('저장완료');

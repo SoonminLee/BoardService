@@ -23,9 +23,14 @@
                 <input class="form-control" type="text" name="Title" value='<%= postTitle %>' id="postTitle"/>
             </div>
             <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">삽입된이미지</label><br>
+                <img src="/public/image/<%= imagename %>" style="width: 300px;height:auto"><br>
+            </div>
+            <div class="mb-3">
                 <label for="exampleFormControlTextarea1" class="form-label">내용</label>
                 <textarea class="form-control" id="postContent" rows="3"
                     name="PostContent" ><%= postContent %></textarea>
+            </div>
             </div>
             <div style="display: flex; justify-content: flex-end;">
                 <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostEdit"
