@@ -27,7 +27,21 @@
                 <textarea class="form-control" id="postContent" rows="3"
                     name="PostContent" ><%= postContent %></textarea>
             </div>
-        </div>
+            <div class="mb-3"
+            style="border-top: 2px solid rgb(138, 136, 136); border-bottom: 2px solid rgb(138, 136, 136);">
+            <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">댓글목록</label><br>
+                <% for (let i=0; i < comment.length; i++){ %>
+                    <span>
+                        <strong>
+                            <%= comment[i].userNick %>
+                        </strong>(<%= comment[i].date %>)
+                    </span>
+                    <span>
+                        <textarea class="form-control" rows="1" name="comment"><%= comment[i].comment %></textarea>
+                    </span>
+                    <% } %>
+            </div>
 
 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
