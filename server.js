@@ -235,18 +235,56 @@ app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
 app.post('/commentWrite', 로그인했냐, async function (요청, 응답) {
   // var TotalComment;
   // TotalComment = await db.collection('comment').estimatedDocumentCount();
-  var 저장할거 = {
-    PostId: parseInt(요청.body.postId),
-    comment: 요청.body.comment,
-    userId: 요청.user.userId,
-    userNick: 요청.user.userNick,
-    date: day.format('YYYY-MM-DD HH:mm:ss')
-  }
-  db.collection('comment').insertOne(저장할거, function (에러, 결과) {
-    console.log('저장완료');
-    응답.send('댓글작성완료')
+  db.collection('counter').findOne({name:"댓글개수"},function(에러, 결과){
+    var 댓글총개수 = 결과.totalComment;
+    var 저장할거 = {
+      _id: 댓글총개수 + 1,
+      PostId: parseInt(요청.body.postId),
+      comment: 요청.body.comment,
+      userId: 요청.user.userId,
+      userNick: 요청.user.userNick,
+      date: day.format('YYYY-MM-DD HH:mm:ss')
+    }
+    db.collection('comment').insertOne(저장할거, function (에러, 결과) {
+      db.collection('counter').updateOne({ name: '댓글개수' }, { $inc: { totalComment: 1 } }, function (에러, 결과) {
+        console.log('저장완료');
+        응답.send('댓글작성완료')
+      })
+    })
+  });
   })
-});
+//==========================================
+//댓글 수정 기능
+app.put('/commentEdit',로그인했냐,function(요청, 응답){
+  var 글번호 = parseInt(요청.body.postId);
+  var 댓글내용 = 요청.body.comment
+  var 댓글번호 = parseInt(요청.body.commentNum)
+  var 수정할데이터  = {
+    comment: 댓글내용
+  }
+  db.collection('comment').updateOne({PostId: 글번호, _id: 댓글번호, userId: 요청.user.userId},{ $set: 수정할데이터 },function(에러, 결과){
+    if(결과.deletedCount == 1){
+      응답.send('댓글수정완료')
+    }else{
+      응답.send('댓글수정실패')
+    }
+  })
+})
+//==========================================
+//댓글 삭제 기능
+app.delete('/commentDelete',로그인했냐,function(요청, 응답){
+  var 글번호 = parseInt(요청.body.postId);
+  var 댓글번호 = parseInt(요청.body.commentNum)
+  var 삭제할댓글 = { PostId: 글번호, _id: 댓글번호, userId: 요청.user.userId }
+  db.collection('comment').deleteOne(삭제할댓글, function(에러, 결과){
+    if(결과.deletedCount == 1){
+      응답.send('댓글삭제완료')
+    }else{
+      응답.send('댓글삭제실패')
+    }
+  })
+})
+
 //==========================================
 // 글 삭제하기 기능
 app.delete('/delete', 로그인했냐, function (요청, 응답) {
@@ -268,8 +306,7 @@ app.put('/edit', 로그인했냐, function (요청, 응답) {
     title: 요청.body.editTitle,
     PostContent: 요청.body.editPostContent
   }
-  db.collection('post').
-    updateOne({ _id: 수정할글번호, userId: 요청.user.userId },
+  db.collection('post').updateOne({ _id: 수정할글번호, userId: 요청.user.userId },
       { $set: 수정할데이터 }, function (에러, 결과) {
         if (에러) { return console.log(에러) }
         응답.send('수정완료');

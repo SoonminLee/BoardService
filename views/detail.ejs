@@ -9,6 +9,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 
     <title>Hello, world!</title>
 </head>
@@ -43,20 +44,17 @@
                     <label for="exampleFormControlTextarea1" class="form-label">댓글목록</label><br>
                     <% for (let i=0; i < comment.length; i++){ %>
                         <span>
-                            <strong>
-                                <%= comment[i].userNick %>
-                            </strong>(<%= comment[i].date %>)
-                        </span>
-                        <span>
-                            <textarea class="form-control" rows="1" name="comment"><%= comment[i].comment %></textarea>
+                            <strong><%= comment[i].userNick %></strong>(<%= comment[i].date %>)
+                            <i style="cursor:pointer" id="commentEdit<%= i %>" data-id="<%= postNum %>" data-commentnum="<%= comment[i]._id %>" class="ml-2 bi bi-pencil-square"></i>
+                            <i style="cursor:pointer" id="commentDelete<%= i %>" data-id="<%= postNum %>" data-commentnum="<%= comment[i]._id %>" class="ml-2 bi bi-x-square"></i><br>
+                            <textarea class="form-control" rows="1" id="commentList-input<%= i %>" name="comment"><%= comment[i].comment %></textarea>
                         </span>
                         <% } %>
                 </div>
                 <div class="mb-3" style="border-top: 2px solid rgb(138, 136, 136)">
                     <input class="form-control" tyep="text" id="commentWrite-input" style="margin-top: 10px;">
                     <div style="display: flex; justify-content: flex-end;">
-                        <button class="btn btn-primary mt-3" id="commentWrite-button" data-id="<%= postNum %>">댓글
-                            등록</button>
+                        <button class="btn btn-primary mt-3" id="commentWrite-button" data-id="<%= postNum %>">댓글등록</button>
                     </div>
                 </div>
             </div>
@@ -118,6 +116,60 @@
                     }
                 })
             })
+            
+            // 댓글수정
+            var 댓글개수 = "<%= comment.length %>";
+            for(i=0; i < 댓글개수;i++){
+                $(`#commentEdit${i}`).click(function(e){
+                    // j는 i값과 동일함.
+                    var j = $(this).data('commentnum')-1;
+                    var 글번호 = e.target.dataset.id;
+                    var 댓글내용 = $(`#commentList-input${j}`).val();
+                    var 댓글번호 = e.target.dataset.commentnum;
+                    $.ajax({
+                        method: 'PUT',
+                        url: '/commentEdit',
+                        data: {
+                            postId: 글번호,
+                            comment: 댓글내용,
+                            commentNum: 댓글번호,
+                        },
+                        success: function(data){
+                            if(data == "댓글수정완료"){
+                                alert("댓글수정완료요")
+                                $(location).attr("href", "/detail/" + 글번호)
+                            } else if(data == "댓글수정실패"){
+                                alert("본인 댓글만 수정 가능")
+                            }
+                        }
+                    })
+                }) 
+            }
+            
+            // 댓글삭제
+            for(i=0; i < 댓글개수;i++){
+                $(`#commentDelete${i}`).click(function(e){
+                    var 글번호 = e.target.dataset.id;
+                    var 댓글번호 = e.target.dataset.commentnum;
+                    $.ajax({
+                        method: 'DELETE',
+                        url: '/commentDelete',
+                        data: {
+                            postId: 글번호,
+                            commentNum: 댓글번호,
+                        },
+                        success: function(data){
+                            if(data == "댓글삭제완료"){
+                                alert("댓글삭제완료요")
+                                $(location).attr("href", "/detail/" + 글번호)
+                            } else if(data == "댓글삭제실패"){
+                                alert("본인 댓글만 삭제 가능")
+                            }
+                        }
+                    })
+                }) 
+            }
+
 
         </script>
 
