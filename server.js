@@ -44,24 +44,22 @@ MongoClient.connect(url, function (에러, client) {
 })
 //===========================
 // 홈페이지로 이동
-app.get('/', function (요청, 응답) {
+app.get('/', async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
 
   var TotalPost;
   var totalPage;
-  db.collection('post').find().toArray(function(에러,결과){
-    TotalPost = 결과.length
-    db.collection('counter').updateOne({name:"게시물개수"}, {$set: {totalPost: TotalPost}},function(에러,결과){
+    TotalPost = await db.collection('post').estimatedDocumentCount();
+    db.collection('counter').updateOne({ name: "게시물개수" }, { $set: { totalPost: TotalPost } }, function (에러, 결과) {
       // console.log('index에서 총게시물수 업데이트 완료')
       db.collection('post').find().
         skip(perPage * (page - 1)).
         limit(perPage).toArray(function (에러, 퍼페이지결과) {
           totalPage = Math.ceil(TotalPost / perPage);
-          응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage})
+          응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
         })
     })
-  })
 });
 //===========================
 // 작성페이지로 이동 
@@ -80,35 +78,89 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
-app.get('/userIndex', 로그인했냐, function (요청, 응답) {
+app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
   var totalPage;
   var TotalPost;
-  db.collection('post').find().toArray(function(에러,결과){
-    TotalPost = 결과.length
-    db.collection('counter').updateOne({name:"게시물개수"}, {$set: {totalPost: TotalPost}},function(에러,결과){
+  TotalPost = await db.collection('post').estimatedDocumentCount();
+    db.collection('counter').updateOne({ name: "게시물개수" }, { $set: { totalPost: TotalPost } }, function (에러, 결과) {
       // console.log('userIndex에서 총게시물수 업데이트 완료')
       db.collection('post').find().
         skip(perPage * (page - 1)).
         limit(perPage).toArray(function (에러, 퍼페이지결과) {
           totalPage = Math.ceil(TotalPost / perPage);
-          응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage})
+          응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
         })
     })
-  })
 });
 //=====================================
+
+
 
 //상세보기 페이지
 // 로그인 X 사람들에게 보여주는 게시글 목록
 app.get('/NoLogIndetail/:id', function (요청, 응답) {
   var title;
   var PostContent;
-  db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
-    title = 결과.title;
-    PostContent = 결과.PostContent;
-    응답.render('NoLogIndetail.ejs', { postNum: 결과._id, postTitle: title, postContent: PostContent })
+  db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 포스트결과) {
+    db.collection('comment').find({ PostId: parseInt(요청.params.id) }).toArray(function (댓글에러, 댓글결과) {
+      if(댓글결과){
+        if (포스트결과.imagename) {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          imagename = 포스트결과.imagename;
+          응답.render(__dirname + '/views/NoLogIndetail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/'+imagename,
+              comment: 댓글결과,
+            })
+        } else {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          응답.render(__dirname + '/views/NoLogIndetail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/이미지없음.png',
+              comment: 댓글결과,
+            })
+        }
+      } else{
+        if (포스트결과.imagename) {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          imagename = 포스트결과.imagename;
+          응답.render(__dirname + '/views/NoLogIndetail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/'+imagename,
+              comment: 댓글결과,
+            })
+        } else {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          응답.render(__dirname + '/views/NoLogIndetail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/이미지없음.png',
+              comment: 댓글결과,
+            })
+        }
+      }
+   })
   })
 })
 //==========================================
@@ -116,17 +168,128 @@ app.get('/NoLogIndetail/:id', function (요청, 응답) {
 app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
   var title;
   var PostContent;
-  db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
-    title = 결과.title;
-    PostContent = 결과.PostContent;
-    응답.render('detail.ejs', { 사용자: 요청.user, postNum: 결과._id, postTitle: title, postContent: PostContent })
+  db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 포스트결과) {
+    if (에러) { return console.log(에러) }
+    db.collection('comment').find({ PostId: parseInt(요청.params.id) }).toArray(function (댓글에러, 댓글결과) {
+      if(댓글결과){
+        if (포스트결과.imagename) {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          imagename = 포스트결과.imagename;
+          응답.render(__dirname + '/views/detail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/'+imagename,
+              comment: 댓글결과,
+            })
+        } else {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          응답.render(__dirname + '/views/detail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/이미지없음.png',
+              comment: 댓글결과,
+            })
+        }
+      } else{
+        if (포스트결과.imagename) {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          imagename = 포스트결과.imagename;
+          응답.render(__dirname + '/views/detail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/'+imagename,
+              comment: 댓글결과,
+            })
+        } else {
+          title = 포스트결과.title;
+          PostContent = 포스트결과.PostContent;
+          응답.render(__dirname + '/views/detail.ejs',
+            {
+              사용자: 요청.user,
+              postNum: 포스트결과._id,
+              postTitle: title,
+              postContent: PostContent,
+              imagename: '/public/image/이미지없음.png',
+              comment: 댓글결과,
+            })
+        }
+      }
+    })
   })
 })
+//==========================================
+// 댓글기능
+app.post('/commentWrite', 로그인했냐, async function (요청, 응답) {
+  // var TotalComment;
+  // TotalComment = await db.collection('comment').estimatedDocumentCount();
+  db.collection('counter').findOne({name:"댓글개수"},function(에러, 결과){
+    var 댓글총개수 = 결과.totalComment;
+    var 저장할거 = {
+      _id: 댓글총개수 + 1,
+      PostId: parseInt(요청.body.postId),
+      comment: 요청.body.comment,
+      userId: 요청.user.userId,
+      userNick: 요청.user.userNick,
+      date: day.format('YYYY-MM-DD HH:mm:ss')
+    }
+    db.collection('comment').insertOne(저장할거, function (에러, 결과) {
+      db.collection('counter').updateOne({ name: '댓글개수' }, { $inc: { totalComment: 1 } }, function (에러, 결과) {
+        console.log('저장완료');
+        응답.send('댓글작성완료')
+      })
+    })
+  });
+  })
+//==========================================
+//댓글 수정 기능
+app.put('/commentEdit',로그인했냐,function(요청, 응답){
+  var 글번호 = parseInt(요청.body.postId);
+  var 댓글내용 = 요청.body.comment
+  var 댓글번호 = parseInt(요청.body.commentNum)
+  var 수정할데이터  = {
+    comment: 댓글내용
+  }
+  db.collection('comment').updateOne({PostId: 글번호, _id: 댓글번호, userId: 요청.user.userId},{ $set: 수정할데이터 },function(에러, 결과){
+    if(결과.modifiedCount == 1){
+      응답.send('댓글수정완료')
+    }else{
+      응답.send('댓글수정실패')
+    }
+  })
+})
+//==========================================
+//댓글 삭제 기능
+app.delete('/commentDelete',로그인했냐,function(요청, 응답){
+  var 글번호 = parseInt(요청.body.postId);
+  var 댓글번호 = parseInt(요청.body.commentNum)
+  var 삭제할댓글 = { PostId: 글번호, _id: 댓글번호, userId: 요청.user.userId }
+  db.collection('comment').deleteOne(삭제할댓글, function(에러, 결과){
+    if(결과.deletedCount == 1){
+      응답.send('댓글삭제완료')
+    }else{
+      응답.send('댓글삭제실패')
+    }
+  })
+})
+
 //==========================================
 // 글 삭제하기 기능
 app.delete('/delete', 로그인했냐, function (요청, 응답) {
   // console.log('유저아이디' + 요청.user.userId)
   var 삭제할글번호 = parseInt(요청.body._id);
+  console.log('삭제할 글번호 = '+삭제할글번호)
   var 삭제할데이터 = { _id: 삭제할글번호, userId: 요청.user.userId }
   db.collection('post').deleteOne(삭제할데이터, function (에러, 결과) {
     if (에러) { return console.log(에러) }
@@ -138,15 +301,14 @@ app.delete('/delete', 로그인했냐, function (요청, 응답) {
 app.put('/edit', 로그인했냐, function (요청, 응답) {
   // 폼에 담긴 제목과 날짜 데이터를 db.collection에 업데이트함
   var 수정할글번호 = parseInt(요청.body._id)
-  var 수정할데이터 = { 
+  var 수정할데이터 = {
     title: 요청.body.editTitle,
     PostContent: 요청.body.editPostContent
   }
-  db.collection('post').
-  updateOne({ _id: 수정할글번호, userId: 요청.user.userId },
-    { $set: 수정할데이터 }, function (에러, 결과) {
-      if (에러) { return console.log(에러) }
-      응답.send('수정완료');
+  db.collection('post').updateOne({ _id: 수정할글번호, userId: 요청.user.userId },
+      { $set: 수정할데이터 }, function (에러, 결과) {
+        if (에러) { return console.log(에러) }
+        응답.send('수정완료');
       })
 })
 //==========================================
@@ -222,21 +384,59 @@ passport.deserializeUser(function (닉네임, done) {
 })
 //==========================================
 
-// 글 작성페이지 DB에 저장
-app.post('/write', 로그인했냐, function (요청, 응답) {
+
+//이미지 업로드
+let multer = require('multer');
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/image') // 이미지가 저장될 경로
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname) // 이미지 저장될때 기존 이름 그대로 사용하겠다는 의미 
+  },
+  // filefilter를 이용해 업로드한 파일 확장자를 정해주기위한 코드
+  // path는 node.js 내장 라이브러리 파일의 경로, 이름, 확장자 등을 알아낼 수 있음.
+  filefilter: function (req, file, callback) {
+    var ext = path.extname(file.originalname);
+    if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+      return callback(new Error('PNG, JPG만 업로드하세요'))
+    }
+    callback(null, true)
+  },
+  // limit는 파일의 사이즈 제한 걸고싶을때 (1024*1024는 1MB)
+  limits: {
+    fileSize: 1024 * 1024
+  }
+})
+var upload = multer({ storage: storage });
+//==========================================
+
+
+// 글 작성페이지 DB에 저장 / 이미지 업로드 기능 추가
+app.post('/write', 로그인했냐, upload.single('profile'), function (요청, 응답) {
   db.collection('counter').findOne({ name: '게시물개수' }, function (에러, 결과) {
     // var date = day.format('YYYY-MM-DD HH:mm:ss')
     if (에러) { return console.log(에러) }
     var 총게시물개수 = 결과.totalPost;
-
-    var 저장할거 = {
-      _id: 총게시물개수 + 1,
-      userId: 요청.user.userId,
-      userNick: 요청.user.userNick,
-      title: 요청.body.Title,
-
-      PostContent: 요청.body.PostContent,
-      date: day.format('YYYY-MM-DD HH:mm:ss')
+    if (요청.file) {
+      var 저장할거 = {
+        _id: 총게시물개수 + 1,
+        userId: 요청.user.userId,
+        userNick: 요청.user.userNick,
+        title: 요청.body.Title,
+        imagename: 요청.file.originalname,
+        PostContent: 요청.body.PostContent,
+        date: day.format('YYYY-MM-DD HH:mm:ss')
+      }
+    } else {
+      var 저장할거 = {
+        _id: 총게시물개수 + 1,
+        userId: 요청.user.userId,
+        userNick: 요청.user.userNick,
+        title: 요청.body.Title,
+        PostContent: 요청.body.PostContent,
+        date: day.format('YYYY-MM-DD HH:mm:ss')
+      }
     }
     db.collection('post').insertOne(저장할거, function (에러, 결과) {
       console.log('저장완료');
@@ -280,6 +480,69 @@ app.post('/signUp', function (요청, 응답) {
   })
 })
 //==========================================
+
+//검색기능
+var searchWord = 0;
+// 누군가 /search 경로로 진입시 List에서 검색했던 검색어와 DB에서 일치하는 title 다 찾아줌
+app.get('/search', (요청, 응답) => {
+  console.log("1번글 입력 = " + 요청.query.value);
+  var 검색조건 = [
+    {
+      $search: {
+        index: 'titleSearch',
+        text: {
+          query: 요청.query.value,
+          path: 'title'  // title, date 둘다 찾고 싶으면 ['title', 'date']
+        }
+      }
+    },
+    // { $sort : {_id : 1}}, // _id 순서로 오름차순, -1은 내림차순
+    // { $limit : 10 }, // 10개만 가져와주세요
+    // { $project : { title : 1, _id : 0, score: { $meta: "searchScore"}}} // 1은 가져오고 0은 안가져오고, score는 mongoDB가 검색어 적합도에대한 점수를 나타내줌
+  ]
+  console.log(검색조건)
+  db.collection('post').aggregate(검색조건).toArray((에러, 결과) => {
+    searchWord = 결과;
+    console.log("서치워드 = " + 결과)
+    응답.redirect('/indexList');
+  })
+})
+
+// 누군가 /usersearch 경로로 진입시 List에서 검색했던 검색어와 DB에서 일치하는 title 다 찾아줌
+app.get('/usersearch', (요청, 응답) => {
+  console.log("1번글 입력 = " + 요청.query.value);
+  var 검색조건 = [
+    {
+      $search: {
+        index: 'titleSearch',
+        text: {
+          query: 요청.query.value,
+          path: 'title'  // title, date 둘다 찾고 싶으면 ['title', 'date']
+        }
+      }
+    },
+    // { $sort : {_id : 1}}, // _id 순서로 오름차순, -1은 내림차순
+    // { $limit : 10 }, // 10개만 가져와주세요
+    // { $project : { title : 1, _id : 0, score: { $meta: "searchScore"}}} // 1은 가져오고 0은 안가져오고, score는 mongoDB가 검색어 적합도에대한 점수를 나타내줌
+  ]
+  console.log(검색조건)
+  db.collection('post').aggregate(검색조건).toArray((에러, 결과) => {
+    searchWord = 결과;
+    console.log("서치워드 = " + 결과)
+    응답.redirect('/userindexList');
+  })
+})
+
+// 누군가 /indexList 경로로 진입하면 indexList 페이지 보여줌
+app.get('/indexList', function (요청, 응답) {
+  응답.render('indexList.ejs', { searchWord: searchWord })
+})
+// 누군가 /userindexList 경로로 진입하면 indexList 페이지 보여줌
+app.get('/userindexList', function (요청, 응답) {
+  응답.render('userindexList.ejs', { 사용자: 요청.user, searchWord: searchWord })
+})
+//==========================================
+
 
 
 
