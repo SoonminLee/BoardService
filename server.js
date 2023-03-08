@@ -263,7 +263,7 @@ app.put('/commentEdit',로그인했냐,function(요청, 응답){
     comment: 댓글내용
   }
   db.collection('comment').updateOne({PostId: 글번호, _id: 댓글번호, userId: 요청.user.userId},{ $set: 수정할데이터 },function(에러, 결과){
-    if(결과.deletedCount == 1){
+    if(결과.modifiedCount == 1){
       응답.send('댓글수정완료')
     }else{
       응답.send('댓글수정실패')

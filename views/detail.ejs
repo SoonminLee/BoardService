@@ -140,6 +140,7 @@
                                 $(location).attr("href", "/detail/" + 글번호)
                             } else if(data == "댓글수정실패"){
                                 alert("본인 댓글만 수정 가능")
+                                $(location).attr("href", "/detail/" + 글번호)
                             }
                         }
                     })
@@ -164,6 +165,7 @@
                                 $(location).attr("href", "/detail/" + 글번호)
                             } else if(data == "댓글삭제실패"){
                                 alert("본인 댓글만 삭제 가능")
+                                $(location).attr("href", "/detail/" + 글번호)
                             }
                         }
                     })
