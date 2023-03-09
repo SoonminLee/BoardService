@@ -64,6 +64,15 @@
           }
         })
       })
+      $('#userEdit').click(function(){
+        $.ajax({
+          url : "/userEdit",
+          type : "GET",
+          success : function(결과){
+            location.replace('/userEdit')
+          }
+        })
+      })
 
       $('#userTitleSearch').click(function(){
         var 입력값 = $('#userTitleSearch-input').val()
