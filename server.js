@@ -47,20 +47,17 @@ MongoClient.connect(url, function (에러, client) {
 app.get('/', async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
-
-  var TotalPost;
   var totalPage;
+  var TotalPost;
   TotalPost = await db.collection('post').estimatedDocumentCount();
-  db.collection('counter').updateOne({ name: "게시물개수" }, { $set: { totalPost: TotalPost } }, function (에러, 결과) {
-    // console.log('index에서 총게시물수 업데이트 완료')
-    db.collection('post').find().
-      skip(perPage * (page - 1)).
-      limit(perPage).toArray(function (에러, 퍼페이지결과) {
-        totalPage = Math.ceil(TotalPost / perPage);
-        응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
-      })
-  })
-});
+  db.collection('post').find().
+    skip(perPage * (page - 1)).
+    limit(perPage).toArray(function (에러, 퍼페이지결과) {
+      totalPage = Math.ceil(TotalPost / perPage);
+      var num = page === 1 ? 0 : (page - 1) * perPage;
+      응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, num: num + 1, posts: 퍼페이지결과, perPage: perPage })
+    })
+})
 //===========================
 // 작성페이지로 이동 
 app.get('/write', 로그인했냐, function (요청, 응답) {
@@ -78,22 +75,35 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
+// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
+//   var page = Number(요청.query.pageNum || 1);
+//   var perPage = Number(요청.query.perPage || 10);
+//   db.collection('counter').findOne({ name: "게시물개수" }, function (에러, 결과) {
+//     TotalPost = 결과.totalPost;
+//     db.collection('post').find().
+//       skip((page - 1) * perPage).
+//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
+//         var totalPage = Math.ceil(TotalPost / perPage)
+//         var num = page === 1 ? 0 : (page - 1) * perPage;
+//         응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
+//       })
+//   })
+// })
+//=====================================
+// /userIndex 페이지로 이동(로그인한사람만 입장)
 app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
-  var totalPage;
   var TotalPost;
   TotalPost = await db.collection('post').estimatedDocumentCount();
-  db.collection('counter').updateOne({ name: "게시물개수" }, { $set: { totalPost: TotalPost } }, function (에러, 결과) {
-    // console.log('userIndex에서 총게시물수 업데이트 완료')
-    db.collection('post').find().
-      skip(perPage * (page - 1)).
-      limit(perPage).toArray(function (에러, 퍼페이지결과) {
-        totalPage = Math.ceil(TotalPost / perPage);
-        응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
-      })
-  })
-});
+  db.collection('post').find().
+    skip((page - 1) * perPage).
+    limit(perPage).toArray(function (에러, 퍼페이지결과) {
+      var totalPage = Math.ceil(TotalPost / perPage)
+      var num = page === 1 ? 0 : (page - 1) * perPage;
+      응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
+    })
+})
 //=====================================
 
 
@@ -549,51 +559,80 @@ app.get('/userEdit', function (요청, 응답) {
   })
 })
 //==========================================
+
 //회원정보 수정
-app.put('/userEdit',로그인했냐,function (요청, 응답) {
+app.put('/userEdit', 로그인했냐, function (요청, 응답) {
   var 이름 = 요청.body.이름;
-  var 아이디 = 요청.body.아이디;
   var 비밀번호 = 요청.body.비밀번호;
+  var 새비밀번호 = 요청.body.새비밀번호;
   var 닉네임 = 요청.body.닉네임;
   var 이메일 = 요청.body.이메일;
   var 수정정보 = {
     userName: 이름,
-    userId: 아이디,
-    userPw: createHashedPassword(비밀번호),
+    userPw: createHashedPassword(새비밀번호),
     userNick: 닉네임,
     userEmail: 이메일
   }
-  console.log('유저아이디 = '+아이디)
+  // 기존의 아이디면 넘어가고 아니라면 아이디중복체크(닉네임, 이메일 동일)
   db.collection('user').findOne({ userId: 요청.user.userId }, function (에러, 결과) {
-    console.log('유저비밀번호Web = '+createHashedPassword(비밀번호))
-    console.log('유저비밀번호DB = '+결과.userPw)
     if (createHashedPassword(비밀번호) == 결과.userPw) {
-      db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
-        db.collection('user').findOne({ userNick: 닉네임 }, function (에러, 닉네임결과) {
-          db.collection('user').findOne({ userEmail: 이메일 }, function (에러, 이메일결과) {
+      db.collection('user').findOne({ userNick: 닉네임, userId: {$ne: 요청.user.userId } }, function (에러, 닉네임결과) {
+        db.collection('user').findOne({ userEmail: 이메일, userId: {$ne: 요청.user.userId } }, function (에러, 이메일결과) {
+          console.log("닉넴결과 = "+닉네임결과," 이메일결과 = "+이메일결과)
+          if (닉네임결과 == null && 이메일결과 == null) {
             db.collection('user').updateOne({ userId: 요청.user.userId }, { $set: 수정정보 }, function (에러, 결과) {
-            if (아이디결과 == null && 닉네임결과 == null && 이메일결과 == null) {
               응답.send("성공")
-            } else if (아이디결과 != null) {
-              응답.send("중복ID")
-            } else if (닉네임결과 != null) {
-              응답.send("중복Nick")
-            } else if (이메일결과 != null) {
-              응답.send("중복Email")
-            }
             })
-          })
+          } else if (닉네임결과 != null) {
+            응답.send("중복Nick")
+          } else if (이메일결과 != null) {
+            응답.send("중복Email")
+          }
         })
       })
     } else {
       응답.send('비밀번호틀림')
     }
   })
+  // 새 비밀번호 입력 했을때
+
+
+  // var 수정정보 = {
+  //   userName: 이름,
+  //   userId: 아이디,
+  //   userPw: createHashedPassword(새비밀번호),
+  //   userNick: 닉네임,
+  //   userEmail: 이메일
+  // }
+  // db.collection('user').findOne({ userId: 요청.user.userId }, function (에러, 결과) {
+  //   if (createHashedPassword(비밀번호) == 결과.userPw) {
+  //     db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
+  //       db.collection('user').findOne({ userNick: 닉네임 }, function (에러, 닉네임결과) {
+  //         db.collection('user').findOne({ userEmail: 이메일 }, function (에러, 이메일결과) {
+  //           db.collection('user').updateOne({ userId: 요청.user.userId }, { $set: 수정정보 }, function (에러, 결과) {
+  //             if (아이디결과 == null && 닉네임결과 == null && 이메일결과 == null) {
+  //               응답.send("성공")
+  //             } else if (아이디결과 != null) {
+  //               응답.send("중복ID")
+  //             } else if (닉네임결과 != null) {
+  //               응답.send("중복Nick")
+  //             } else if (이메일결과 != null) {
+  //               응답.send("중복Email")
+  //             }
+  //           })
+  //         })
+  //       })
+  //     })
+  //   } else {
+  //     응답.send('비밀번호틀림')
+  //   }
+  // })
+
 })
 //==========================================
-    
+
 //회원정보삭제
-app.delete('/userDelete',로그인했냐,function(요청, 응답){
+app.delete('/userDelete', 로그인했냐, function (요청, 응답) {
   var 아이디 = 요청.body.아이디;
   var 비밀번호 = 요청.body.비밀번호;
   db.collection('user').findOne({ userId: 요청.user.userId }, function (에러, 결과) {
@@ -601,7 +640,7 @@ app.delete('/userDelete',로그인했냐,function(요청, 응답){
       db.collection('user').deleteOne({ userId: 아이디 }, function (에러, 결과) {
         응답.send("회원삭제완료")
       })
-    } else{
+    } else {
       응답.send('비밀번호틀림')
     }
   })
