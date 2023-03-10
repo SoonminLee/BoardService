@@ -58,6 +58,7 @@ app.get('/', async function (요청, 응답) {
       응답.render(__dirname + '/views/index.ejs', { totalPage: totalPage, num: num + 1, posts: 퍼페이지결과, perPage: perPage })
     })
 })
+
 //===========================
 // 작성페이지로 이동 
 app.get('/write', 로그인했냐, function (요청, 응답) {
@@ -75,6 +76,7 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
+
 // app.get('/userIndex', 로그인했냐, function (요청, 응답) {
 //   var page = Number(요청.query.pageNum || 1);
 //   var perPage = Number(요청.query.perPage || 10);
@@ -91,6 +93,7 @@ app.get('/login', function (요청, 응답) {
 // })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
+
 app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -104,6 +107,7 @@ app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
       응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
     })
 })
+
 //=====================================
 
 
@@ -115,6 +119,7 @@ app.get('/NoLogIndetail/:id', function (요청, 응답) {
   var PostContent;
   db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 포스트결과) {
     db.collection('comment').find({ PostId: parseInt(요청.params.id) }).toArray(function (댓글에러, 댓글결과) {
+
       if (댓글결과) {
         if (포스트결과.imagename) {
           title = 포스트결과.title;
@@ -279,6 +284,7 @@ app.put('/commentEdit', 로그인했냐, function (요청, 응답) {
     }
   })
 })
+
 //==========================================
 //댓글 삭제 기능
 app.delete('/commentDelete', 로그인했냐, function (요청, 응답) {
@@ -646,7 +652,3 @@ app.delete('/userDelete', 로그인했냐, function (요청, 응답) {
   })
 })
 //==========================================
-
-
-
-
