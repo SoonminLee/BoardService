@@ -18,6 +18,7 @@
 
         <h4>회원가입페이지</h4>
         <div class="container">
+            <div class="w-50" style="float: none; margin:0 auto;">
                 <div class="mb-3">
                     <label class="form-label">이름</label>
                     <input class="form-control" id="userName" type="text" name="userName" />
@@ -39,19 +40,20 @@
                     <input class="form-control" id="userEmail" placeholder="email@email.com" type="text" name="userEmail" />
                 </div>
                 <button class="btn btn-outline-primary btn-sm" id="signUpButton" >Submit</button>
+            </div>
         </div>
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script>
-            $('#signUpButton').click(function() {
-                var 이름 = $('#userName').val();
-                var 아이디 = $('#userId').val();
-                var 비밀번호 = $('#userPw').val();
-                var 닉네임 = $('#userNickname').val();
-                var 이메일 = $('#userEmail').val();
-
-                if (이름 == '') {
-                    alert('이름은 필수 항목이므로 공백이 있으면 안됩니다.')
-                }
+            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+            <script>
+                $('#signUpButton').click(function() {
+                    var 이름 = $('#userName').val();
+                    var 아이디 = $('#userId').val();
+                    var 비밀번호 = $('#userPw').val();
+                    var 닉네임 = $('#userNickname').val();
+                    var 이메일 = $('#userEmail').val();
+                    
+                    if (이름 == '') {
+                        alert('이름은 필수 항목이므로 공백이 있으면 안됩니다.')
+                    }
                 else if (아이디 == '') {
                     alert('아이디는 필수 항목이므로 공백이 있으면 안됩니다.')
                 }  else if (/^[a-zA-Z0-9]{3,10}$/.test(아이디) == false) {

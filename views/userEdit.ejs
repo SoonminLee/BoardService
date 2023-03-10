@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/public/style.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+</head>
+
+<body>
+    <%- include ('usernav.html') %>
+
+        <h4>회원정보페이지</h4>
+        <div class="container">
+            <div class="w-50" style="float: none; margin:0 auto;">
+                <div class="mb-3">
+                    <label class="form-label">아이디</label><br>
+                    <label class="form-label" style="font-size: 30px; font-weight: bold">
+                        <%= 유저아이디 %>
+                    </label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">비밀번호(수정 또는 탈퇴할려면 필수 입력)</label>
+                    <input class="form-control" id="userPw" type="password" name="userPw" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">새비밀번호</label>
+                    <input class="form-control" id="userNewPw" type="password" name="userNewPw" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">새비밀번호 재입력</label>
+                    <input class="form-control" id="userNewPwRe" type="password" name="userNewPwRe" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">이름</label>
+                    <input class="form-control" id="userName" type="text" name="userName" value="<%= 유저네임 %>" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">닉네임</label>
+                    <input class="form-control" id="userNickname" type="text" name="userNickname" value="<%= 유저닉 %>" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">이메일</label>
+                    <input class="form-control" id="userEmail" placeholder="email@email.com" type="text"
+                        name="userEmail" value="<%= 유저이메일 %>" />
+                </div>
+                <button class="btn btn-outline-primary btn-sm" id="signUpButton">수정</button>
+                <button style="float: right" class="btn btn-outline-danger btn-sm" id="userDelete">탈퇴</button>
+            </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script>
+            $('#signUpButton').click(function (e) {
+                var 이름 = $('#userName').val();
+                var 비밀번호 = $('#userPw').val();
+                var 새비밀번호 = $('#userNewPw').val();
+                var 새비밀번호재입력 = $('#userNewPwRe').val();
+                var 닉네임 = $('#userNickname').val();
+                var 이메일 = $('#userEmail').val();
+
+                if (이름 == '') {
+                    alert('이름은 필수 항목이므로 공백이 있으면 안됩니다.')
+                } else if (비밀번호 == '') {
+                    alert('비밀번호는 필수 항목이므로 공백이 있으면 안됩니다.')
+                } else if (비밀번호 == 새비밀번호) {
+                    alert('비밀번호와 새 비밀번호는 동일할 수 없습니다.')
+                } else if (새비밀번호 != 새비밀번호재입력) {
+                    alert('새비밀번호가 새비밀번호 재입력과 다릅니다.')
+                } else if (/^[a-zA-Z0-9]{6,12}$/.test(새비밀번호) == false) {
+                    alert('비밀번호는 대소문자와 숫자(6~12글자)로 설정해야합니다.')
+                } else if (닉네임 == '') {
+                    alert('닉네임은 필수 항목이므로 공백이 있으면 안됩니다.')
+                } else if (이메일 == '') {
+                    alert('이메일은 필수 항목이므로 공백이 있으면 안됩니다.')
+                } else if (/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/.test(이메일) == false) {
+                    alert('이메일의 형식이 잘못되었습니다.')
+                } else {
+                    $.ajax({
+                        url: "/userEdit",
+                        type: "PUT",
+                        data: {
+                            이름: 이름,
+                            비밀번호: 비밀번호,
+                            새비밀번호: 새비밀번호,
+                            닉네임: 닉네임,
+                            이메일: 이메일
+                        },
+                        success: function (data) {
+                            if (data === "비밀번호틀림") {
+                                alert("비밀번호가 틀립니다.")
+                            } else if (data === "중복Nick") {
+                                alert("닉네임이 중복입니다.")
+                            } else if (data === "중복Email") {
+                                alert("이메일이 중복입니다.")
+                            } else if (data === "성공") {
+                                alert("정상적으로 회원정보 수정 되었습니다.")
+                                $(location).attr("href", "/login")
+                            }
+                        }
+                    })
+                }
+            })
+            $('#userDelete').click(function () {
+                var 아이디 = $('#userId').val();
+                var 비밀번호 = $('#userPw').val();
+                $.ajax({
+                    url: "/userDelete",
+                    type: "DELETE",
+                    data: {
+                        아이디: 아이디,
+                        비밀번호: 비밀번호,
+                    },
+                    success: function (결과) {
+                        if (결과 === "비밀번호틀림") {
+                            alert("비밀번호가 틀립니다.")
+                        } else if (결과 === "회원삭제완료") {
+                            alert("회원가입 탈퇴가 완료되었습니다.")
+                            location.replace('/login')
+                        }
+                    }
+                })
+            })
+        </script>
+
+
+
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <!-- <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+</body>
+
+</html>
