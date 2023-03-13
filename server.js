@@ -624,38 +624,38 @@ app.post('/findPw', function(요청, 응답){
     }
 
     db.collection('user').updateOne({ userId: 아이디 }, { $set: 수정정보 }, function (에러, 결과) {
-      응답.send("성공")
+
+      
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        port: 465,
+        secure: true, // true for 465, false for other ports
+        auth: { // 이메일을 보낼 계정 데이터 입력
+          user: 'soonmin07@gmail.com',
+          pass: 'smwhyytnnddetece',
+        },
+      });
+      const emailOptions = { // 옵션값 설정
+        from: 'BoardService@gmail.com',
+        to: 유저이메일,
+        subject: 'BoardService에서 임시비밀번호를 알려드립니다.',
+        html: 
+        "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
+        +'<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>'	
+        ,
+      };
+      transporter.sendMail(emailOptions, (err, info)=>{
+        if(err){
+          console.log("err = ", err);
+          return
+        }
+        console.log("ok", info);
+      }); //전송
     })
-   
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      port: 465,
-      secure: true, // true for 465, false for other ports
-      auth: { // 이메일을 보낼 계정 데이터 입력
-        user: 'soonmin07@gmail.com',
-        pass: 'smwhyytnnddetece',
-      },
-    });
-    const emailOptions = { // 옵션값 설정
-      from: 'BoardService@gmail.com',
-      to: 유저이메일,
-      subject: 'BoardService에서 임시비밀번호를 알려드립니다.',
-      html: 
-      "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
-      +'<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>'	
-      ,
-    };
-    transporter.sendMail(emailOptions, (err, info)=>{
-      if( err){
-        console.log("err = ", err);
-        return
-      }
-
-      console.log("ok", info);
-    }); //전송
+    })
+    응답.send('메일발송성공')
   })
-  // 응답.send('메일발송성공')
-  })
-//==========================================
-
-
+  //==========================================
+  
+  
+  
