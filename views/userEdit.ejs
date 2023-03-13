@@ -50,13 +50,13 @@
                     <input class="form-control" id="userEmail" placeholder="email@email.com" type="text"
                         name="userEmail" value="<%= 유저이메일 %>" />
                 </div>
-                <button class="btn btn-outline-primary btn-sm" id="signUpButton">수정</button>
+                <button class="btn btn-outline-primary btn-sm" id="user-Edit">수정</button>
                 <button style="float: right" class="btn btn-outline-danger btn-sm" id="userDelete">탈퇴</button>
             </div>
         </div>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script>
-            $('#signUpButton').click(function (e) {
+            $('#user-Edit').click(function (e) {
                 var 이름 = $('#userName').val();
                 var 비밀번호 = $('#userPw').val();
                 var 새비밀번호 = $('#userNewPw').val();
@@ -120,7 +120,7 @@
                         if (결과 === "비밀번호틀림") {
                             alert("비밀번호가 틀립니다.")
                         } else if (결과 === "회원삭제완료") {
-                            alert("회원가입 탈퇴가 완료되었습니다.")
+                            alert("회원 탈퇴가 완료되었습니다.")
                             location.replace('/login')
                         }
                     }

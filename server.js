@@ -31,6 +31,10 @@ app.use(session({ secret: '비밀코드', resave: true, saveUninitialized: false
 app.use(passport.initialize());
 app.use(passport.session());
 //===========================
+//이메일 전송을위한 라이브러리(비밀번호찾기에 사용)
+const nodemailer = require('nodemailer');
+//===========================
+
 // mongoDB 접속 코드
 var db;
 const url = `mongodb+srv://admin:xkfanem1!@cluster0.8wei56h.mongodb.net/?retryWrites=true&w=majority`
@@ -75,22 +79,6 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
-// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
-//   var page = Number(요청.query.pageNum || 1);
-//   var perPage = Number(요청.query.perPage || 10);
-//   db.collection('counter').findOne({ name: "게시물개수" }, function (에러, 결과) {
-//     TotalPost = 결과.totalPost;
-//     db.collection('post').find().
-//       skip((page - 1) * perPage).
-//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
-//         var totalPage = Math.ceil(TotalPost / perPage)
-//         var num = page === 1 ? 0 : (page - 1) * perPage;
-//         응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
-//       })
-//   })
-// })
-//=====================================
-// /userIndex 페이지로 이동(로그인한사람만 입장)
 app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -105,8 +93,6 @@ app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
     })
 })
 //=====================================
-
-
 
 //상세보기 페이지
 // 로그인 X 사람들에게 보여주는 게시글 목록
@@ -325,7 +311,7 @@ app.put('/edit', 로그인했냐, function (요청, 응답) {
 
 // login 기능
 app.post('/login', passport.authenticate('local', {
-  failureRedirect: '/fail'
+  failureRedirect: '/login'
 }), function (요청, 응답) {
   // 1. 로그인하면 아이디 비번 검사
   응답.redirect('/userIndex')
@@ -594,40 +580,6 @@ app.put('/userEdit', 로그인했냐, function (요청, 응답) {
       응답.send('비밀번호틀림')
     }
   })
-  // 새 비밀번호 입력 했을때
-
-
-  // var 수정정보 = {
-  //   userName: 이름,
-  //   userId: 아이디,
-  //   userPw: createHashedPassword(새비밀번호),
-  //   userNick: 닉네임,
-  //   userEmail: 이메일
-  // }
-  // db.collection('user').findOne({ userId: 요청.user.userId }, function (에러, 결과) {
-  //   if (createHashedPassword(비밀번호) == 결과.userPw) {
-  //     db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
-  //       db.collection('user').findOne({ userNick: 닉네임 }, function (에러, 닉네임결과) {
-  //         db.collection('user').findOne({ userEmail: 이메일 }, function (에러, 이메일결과) {
-  //           db.collection('user').updateOne({ userId: 요청.user.userId }, { $set: 수정정보 }, function (에러, 결과) {
-  //             if (아이디결과 == null && 닉네임결과 == null && 이메일결과 == null) {
-  //               응답.send("성공")
-  //             } else if (아이디결과 != null) {
-  //               응답.send("중복ID")
-  //             } else if (닉네임결과 != null) {
-  //               응답.send("중복Nick")
-  //             } else if (이메일결과 != null) {
-  //               응답.send("중복Email")
-  //             }
-  //           })
-  //         })
-  //       })
-  //     })
-  //   } else {
-  //     응답.send('비밀번호틀림')
-  //   }
-  // })
-
 })
 //==========================================
 
@@ -647,6 +599,59 @@ app.delete('/userDelete', 로그인했냐, function (요청, 응답) {
 })
 //==========================================
 
+// 비밀번호 찾기
+var variable = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z".split(",");
+var 임시비밀번호 = createRandomPassword(variable, 8);
 
+ //비밀번호 랜덤 함수
+ function createRandomPassword(variable, passwordLength) {
+      var randomString = "";
+      for (var j=0; j<passwordLength; j++) 
+        randomString += variable[Math.floor(Math.random()*variable.length)];
+         return randomString
+       }
+
+app.post('/findPw', function(요청, 응답){
+  var 아이디 = 요청.body.아이디;
+  db.collection('user').findOne({ userId: 아이디 }, function (에러, 결과) {
+    var 유저이메일 = 결과.userEmail 
+    var 수정정보 = {
+      userPw: createHashedPassword(임시비밀번호)
+    }
+
+    db.collection('user').updateOne({ userId: 아이디 }, { $set: 수정정보 }, function (에러, 결과) {
+      응답.send("성공")
+    })
+   
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: { // 이메일을 보낼 계정 데이터 입력
+        user: 'soonmin07@gmail.com',
+        pass: 'smwhyytnnddetece',
+      },
+    });
+    const emailOptions = { // 옵션값 설정
+      from: 'BoardService@gmail.com',
+      to: 유저이메일,
+      subject: 'BoardService에서 임시비밀번호를 알려드립니다.',
+      html: 
+      "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
+      +'<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>'	
+      ,
+    };
+    transporter.sendMail(emailOptions, (err, info)=>{
+      if( err){
+        console.log("err = ", err);
+        return
+      }
+
+      console.log("ok", info);
+    }); //전송
+  })
+  // 응답.send('메일발송성공')
+  })
+//==========================================
 
 
