@@ -22,25 +22,50 @@
                 <form action="/login" method="POST">
                     <div class="mb-3">
                         <label class="form-label" for="id">아이디</label>
-                        <input class="form-control" type="text" name="userId" />
+
+                        <input class="form-control" type="text" name="userId" id="userId" />
+
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="id">비밀번호</label>
                         <input class="form-control" type="password" name="userPw" />
                     </div>
-                    <button class="btn btn-outline-primary btn-sm" type="submit">로그인</button>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" type="submit">로그인</button>
                 </form>
+                <button style="float: right" class="btn btn-outline-danger btn-sm" id="findPw">비밀번호찾기</button>
             </div>
         </div>
+
+        </div>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script>
+            $("#findPw").click(function () {
+                var 아이디 = $('#userId').val()
+                if (아이디 === '') {
+                    alert('비밀번호 찾고 싶은 아이디를 입력하세요')
+                } else {
+                    $.ajax({
+                        url: "/findPw",
+                        type: "POST",
+                        data: {
+                            아이디: 아이디,
+                        },
+                        success: function (data) {
+                            if (data === "메일발송성공") {
+                                alert("메일 발송되었으니 확인하시오")
+                                $(location).attr("href", "/login")
+                            }
+                        }
+                    })
+                }
+            })
+        </script>
 
 
 
         <!-- Optional JavaScript -->
         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-        <!-- <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-            crossorigin="anonymous"></script> -->
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
             integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
             crossorigin="anonymous"></script>
