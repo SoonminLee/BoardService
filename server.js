@@ -80,6 +80,24 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
+
+// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
+//   var page = Number(요청.query.pageNum || 1);
+//   var perPage = Number(요청.query.perPage || 10);
+//   db.collection('counter').findOne({ name: "게시물개수" }, function (에러, 결과) {
+//     TotalPost = 결과.totalPost;
+//     db.collection('post').find().
+//       skip((page - 1) * perPage).
+//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
+//         var totalPage = Math.ceil(TotalPost / perPage)
+//         var num = page === 1 ? 0 : (page - 1) * perPage;
+//         응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
+//       })
+//   })
+// })
+//=====================================
+// /userIndex 페이지로 이동(로그인한사람만 입장)
+
 app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -656,6 +674,3 @@ app.post('/findPw', function(요청, 응답){
     응답.send('메일발송성공')
   })
   //==========================================
-  
-  
-  
