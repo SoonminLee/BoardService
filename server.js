@@ -81,6 +81,24 @@ app.get('/login', function (요청, 응답) {
 })
 //=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
+
+// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
+//   var page = Number(요청.query.pageNum || 1);
+//   var perPage = Number(요청.query.perPage || 10);
+//   db.collection('counter').findOne({ name: "게시물개수" }, function (에러, 결과) {
+//     TotalPost = 결과.totalPost;
+//     db.collection('post').find().
+//       skip((page - 1) * perPage).
+//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
+//         var totalPage = Math.ceil(TotalPost / perPage)
+//         var num = page === 1 ? 0 : (page - 1) * perPage;
+//         응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
+//       })
+//   })
+// })
+//=====================================
+// /userIndex 페이지로 이동(로그인한사람만 입장)
+
 app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -570,6 +588,7 @@ app.put('/userEdit', 로그인했냐, function (요청, 응답) {
       db.collection('user').findOne({ userNick: 닉네임, userId: { $ne: 요청.user.userId } }, function (에러, 닉네임결과) {
         db.collection('user').findOne({ userEmail: 이메일, userId: { $ne: 요청.user.userId } }, function (에러, 이메일결과) {
           console.log("닉넴결과 = " + 닉네임결과, " 이메일결과 = " + 이메일결과)
+
           if (닉네임결과 == null && 이메일결과 == null) {
             db.collection('user').updateOne({ userId: 요청.user.userId }, { $set: 수정정보 }, function (에러, 결과) {
               응답.send("성공")
@@ -608,6 +627,7 @@ app.delete('/userDelete', 로그인했냐, function (요청, 응답) {
 var variable = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z".split(",");
 var 임시비밀번호 = createRandomPassword(variable, 8);
 
+
 //비밀번호 랜덤 함수
 function createRandomPassword(variable, passwordLength) {
   var randomString = "";
@@ -624,6 +644,7 @@ app.post('/findPw', function (요청, 응답) {
       userPw: createHashedPassword(임시비밀번호)
     }
     db.collection('user').updateOne({ userId: 아이디 }, { $set: 수정정보 }, function (에러, 결과) {
+
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         port: 465,
