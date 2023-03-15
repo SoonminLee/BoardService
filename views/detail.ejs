@@ -159,6 +159,7 @@
             // 댓글삭제
             for(i=0; i < 댓글개수;i++){
                 $(`#commentDelete${i}`).click(function(e){
+                    console.log(i)
                     var 글번호 = e.target.dataset.id;
                     var 댓글번호 = e.target.dataset.commentnum;
                     $.ajax({
@@ -169,10 +170,11 @@
                             commentNum: 댓글번호,
                         },
                         success: function(data){
-                            if(data == "댓글삭제완료"){
+                            console.log(data)
+                            if(data === "댓글삭제완료"){
                                 alert("댓글삭제완료요")
                                 $(location).attr("href", "/detail/" + 글번호)
-                            } else if(data == "댓글삭제실패"){
+                            } else if(data === "댓글삭제실패"){
                                 alert("본인 댓글만 삭제 가능")
                                 $(location).attr("href", "/detail/" + 글번호)
                             }
@@ -180,62 +182,6 @@
                     })
                 }) 
             }
-
-            // 댓글수정
-            var 댓글개수 = "<%= comment.length %>";
-            for (i = 0; i < 댓글개수; i++) {
-                $(`#commentEdit${i}`).click(function (e) {
-                    // j는 i값과 동일함.
-                    var j = $(this).data('commentnum') - 1;
-                    var 글번호 = e.target.dataset.id;
-                    var 댓글내용 = $(`#commentList-input${j}`).val();
-                    var 댓글번호 = e.target.dataset.commentnum;
-                    $.ajax({
-                        method: 'PUT',
-                        url: '/commentEdit',
-                        data: {
-                            postId: 글번호,
-                            comment: 댓글내용,
-                            commentNum: 댓글번호,
-                        },
-                        success: function (data) {
-                            if (data == "댓글수정완료") {
-                                alert("댓글수정완료요")
-                                $(location).attr("href", "/detail/" + 글번호)
-                            } else if (data == "댓글수정실패") {
-                                alert("본인 댓글만 수정 가능")
-                                $(location).attr("href", "/detail/" + 글번호)
-                            }
-                        }
-                    })
-                })
-            }
-
-            // 댓글삭제
-            for (i = 0; i < 댓글개수; i++) {
-                $(`#commentDelete${i}`).click(function (e) {
-                    var 글번호 = e.target.dataset.id;
-                    var 댓글번호 = e.target.dataset.commentnum;
-                    $.ajax({
-                        method: 'DELETE',
-                        url: '/commentDelete',
-                        data: {
-                            postId: 글번호,
-                            commentNum: 댓글번호,
-                        },
-                        success: function (data) {
-                            if (data == "댓글삭제완료") {
-                                alert("댓글삭제완료요")
-                                $(location).attr("href", "/detail/" + 글번호)
-                            } else if (data == "댓글삭제실패") {
-                                alert("본인 댓글만 삭제 가능")
-                                $(location).attr("href", "/detail/" + 글번호)
-                            }
-                        }
-                    })
-                })
-            }
-
 
         </script>
 

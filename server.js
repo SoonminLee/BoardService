@@ -26,6 +26,7 @@ const createHashedPassword = (password) => {
 // passport 라이브러리 사용하기위한 코드
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
 app.use(session({ secret: '비밀코드', resave: true, saveUninitialized: false }));
 app.use(passport.initialize());
@@ -387,7 +388,7 @@ passport.serializeUser(function (user, done) {
   done(null, user.userId)
 })
 
-// 이 세션 데이터를 가진 사람을 DB에서 찾아주세요(마이페이지 접속시 발동)
+// 이 세션 데이터를 가진 사람을 DB에서 찾아주세요
 passport.deserializeUser(function (아이디, done) {
   // deserializeUser() : DB에서 위에 있던 user.id로 유저를 찾은 뒤에 유저 정보를 아래 done의 중괄호에 넣음
   db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
@@ -584,9 +585,10 @@ app.put('/userEdit', 로그인했냐, function (요청, 응답) {
   // 기존의 아이디면 넘어가고 아니라면 아이디중복체크(닉네임, 이메일 동일)
   db.collection('user').findOne({ userId: 요청.user.userId }, function (에러, 결과) {
     if (createHashedPassword(비밀번호) == 결과.userPw) {
-      db.collection('user').findOne({ userNick: 닉네임, userId: {$ne: 요청.user.userId } }, function (에러, 닉네임결과) {
-        db.collection('user').findOne({ userEmail: 이메일, userId: {$ne: 요청.user.userId } }, function (에러, 이메일결과) {
-          console.log("닉넴결과 = "+닉네임결과," 이메일결과 = "+이메일결과)
+      db.collection('user').findOne({ userNick: 닉네임, userId: { $ne: 요청.user.userId } }, function (에러, 닉네임결과) {
+        db.collection('user').findOne({ userEmail: 이메일, userId: { $ne: 요청.user.userId } }, function (에러, 이메일결과) {
+          console.log("닉넴결과 = " + 닉네임결과, " 이메일결과 = " + 이메일결과)
+
           if (닉네임결과 == null && 이메일결과 == null) {
             db.collection('user').updateOne({ userId: 요청.user.userId }, { $set: 수정정보 }, function (에러, 결과) {
               응답.send("성공")
@@ -625,25 +627,24 @@ app.delete('/userDelete', 로그인했냐, function (요청, 응답) {
 var variable = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z".split(",");
 var 임시비밀번호 = createRandomPassword(variable, 8);
 
- //비밀번호 랜덤 함수
- function createRandomPassword(variable, passwordLength) {
-      var randomString = "";
-      for (var j=0; j<passwordLength; j++) 
-        randomString += variable[Math.floor(Math.random()*variable.length)];
-         return randomString
-       }
 
-app.post('/findPw', function(요청, 응답){
+//비밀번호 랜덤 함수
+function createRandomPassword(variable, passwordLength) {
+  var randomString = "";
+  for (var j = 0; j < passwordLength; j++)
+    randomString += variable[Math.floor(Math.random() * variable.length)];
+  return randomString
+}
+
+app.post('/findPw', function (요청, 응답) {
   var 아이디 = 요청.body.아이디;
   db.collection('user').findOne({ userId: 아이디 }, function (에러, 결과) {
-    var 유저이메일 = 결과.userEmail 
+    var 유저이메일 = 결과.userEmail
     var 수정정보 = {
       userPw: createHashedPassword(임시비밀번호)
     }
-
     db.collection('user').updateOne({ userId: 아이디 }, { $set: 수정정보 }, function (에러, 결과) {
 
-      
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         port: 465,
@@ -657,20 +658,83 @@ app.post('/findPw', function(요청, 응답){
         from: 'BoardService@gmail.com',
         to: 유저이메일,
         subject: 'BoardService에서 임시비밀번호를 알려드립니다.',
-        html: 
-        "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
-        +'<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>'	
+        html:
+          "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
+          + '<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>'
         ,
       };
-      transporter.sendMail(emailOptions, (err, info)=>{
-        if(err){
+      transporter.sendMail(emailOptions, (err, info) => {
+        if (err) {
           console.log("err = ", err);
           return
         }
         console.log("ok", info);
       }); //전송
     })
-    })
-    응답.send('메일발송성공')
   })
-  //==========================================
+  응답.send('메일발송성공')
+})
+//==========================================
+
+
+//구글 로그인
+
+passport.serializeUser(function (user, done) {
+  console.log('serialize', user);
+  done(null, user.id);
+});
+
+// 사용자가 페이지를 방문할 때마다 호출되는 함수
+// done(null, id)로 사용자의 정보를 각 request의 user 변수에 넣어준다.
+passport.deserializeUser(function (id, done) {
+  console.log('deserialize', id);
+  done(null, id);
+});
+
+passport.use(
+  new GoogleStrategy({
+    clientID: '403235330551-kicomc6gug5h9b19f07jpbo5pp96g2g6.apps.googleusercontent.com',
+    clientSecret: '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',
+    callbackURL: 'http://localhost:8080/auth/google/callback',
+  },
+    function (request, accessToken, refreshToken, profile, done) {
+      const { email, name } = profile._json;
+      // console.log('구글이메일 = ' + email)
+      // console.log('구글네임 = ' + name)
+      var user;
+      db.collection('user').findOne({ userEmail: email }, function (에러, 결과) {
+        // console.log('결과 = '+JSON.stringify(결과))
+        user = 결과;
+        if (user) {
+          // 이미 가입된 구글 프로필이면 성공
+          return done(null, user);
+        } else {
+          // 가입되지 않는 유저면 회원가입 시키고 로그인을 시킨다
+          db.collection('counter').findOne({ name: "유저수" }, function (에러, 유저수결과) {
+            var 유저수 = 유저수결과.totalUser;
+            db.collection('counter').updateOne({ name: '유저수' }, { $inc: { totalUser: 1 } }, function (에러, 결과) {
+             db.collection('user').insertOne({ 
+                _id: 유저수 + 1, 
+                userName: name, 
+                userId: email, 
+                userNick: name, 
+                userEmail: email });
+              })
+            })
+          }
+          return done(null, user);
+      })
+    }
+  )
+);
+
+// 프로파일과 이메일 정보를 받는다.
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+//? 위에서 구글 서버 로그인이 되면, redirect url 설정에 따라 이쪽 라우터로 오게 된다. 인증 코드를 박게됨
+app.get('/auth/google/callback', passport.authenticate('google', {
+  successRedirect: '/userIndex',
+  failureRedirect: '/login',
+}))
+
+//==========================================
