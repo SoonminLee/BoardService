@@ -728,7 +728,6 @@ app.post('/findPw', function (요청, 응답) {
 })
 //==========================================
 
-
 //chat GPT
 
 app.get("/chatGPT", function(요청, 응답){
