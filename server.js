@@ -729,3 +729,33 @@ app.post('/findPw', function (요청, 응답) {
 //==========================================
 
 
+//chat GPT
+
+app.get("/chatGPT", function(요청, 응답){
+응답.render(__dirname + '/views/chatGPT.ejs', {사용자: 요청.user})
+})
+
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: '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',
+});
+const openai = new OpenAIApi(configuration);
+app.post('/chatGPT', async function(요청, 응답){
+  var 질문내용 = 요청.body.question;
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: 질문내용,
+    max_tokens: 300,
+    temperature: 0,
+  });
+  
+  if (response.data) {
+    if (response.data.choices) {
+      응답.send(response.data.choices[0].text)
+    }
+  }
+  
+})
+
+
+//==========================================
