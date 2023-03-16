@@ -693,8 +693,8 @@ passport.deserializeUser(function (id, done) {
 
 passport.use(
   new GoogleStrategy({
-    clientID: '403235330551-kicomc6gug5h9b19f07jpbo5pp96g2g6.apps.googleusercontent.com',
-    clientSecret: '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',
+    clientID: '~~부여받은아이디~~',
+    clientSecret: '~~부여받은비밀번호~~',
     callbackURL: 'http://localhost:8080/auth/google/callback',
   },
     function (request, accessToken, refreshToken, profile, done) {
