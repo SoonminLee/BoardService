@@ -404,6 +404,7 @@ passport.use(new LocalStrategy({
 }));
 
 
+
 //구글 로그인
 // GoogleStrategy 인증방법
 passport.use(
@@ -726,6 +727,5 @@ app.post('/findPw', function (요청, 응답) {
   응답.send('메일발송성공')
 })
 //==========================================
-
 
 
