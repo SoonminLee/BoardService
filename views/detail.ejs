@@ -21,12 +21,14 @@
         <div class="container">
             <div class="w-50" style="float: none; margin:0 auto;">
                 <div class="mb-3">
-                    <div style="display: flex; justify-content: flex-end;">
-                        <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostEdit"
-                            data-id="<%= postNum %>">수정하기</button>
-                        <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostDelete"
-                            data-id="<%= postNum %>">삭제하기</button>
-                    </div>
+                    <% if( WriterId == 사용자.userId ){ %>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostEdit"
+                                data-id="<%= postNum %>">수정하기</button>
+                            <button type="button" class="btn btn-primary" style="margin: 3px;" id="PostDelete"
+                                data-id="<%= postNum %>">삭제하기</button>
+                        </div>
+                        <% } %>
                     <label class="form-label" for="id">제목</label><span> / 글번호 : <%= postNum %> </span>
                     <input class="form-control" type="text" name="Title" value='<%= postTitle %>' id="postTitle" />
                 </div>

@@ -198,6 +198,7 @@ app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
             {
               사용자: 요청.user,
               postNum: 포스트결과._id,
+              WriterId: 포스트결과.userId,
               postTitle: title,
               postContent: PostContent,
               imagename: '/public/image/' + imagename,
@@ -210,6 +211,7 @@ app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
             {
               사용자: 요청.user,
               postNum: 포스트결과._id,
+              WriterId: 포스트결과.userId,
               postTitle: title,
               postContent: PostContent,
               imagename: '/public/image/이미지없음.png',
@@ -225,6 +227,7 @@ app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
             {
               사용자: 요청.user,
               postNum: 포스트결과._id,
+              WriterId: 포스트결과.userId,
               postTitle: title,
               postContent: PostContent,
               imagename: '/public/image/' + imagename,
@@ -237,6 +240,7 @@ app.get('/detail/:id', 로그인했냐, function (요청, 응답) {
             {
               사용자: 요청.user,
               postNum: 포스트결과._id,
+              WriterId: 포스트결과.userId,
               postTitle: title,
               postContent: PostContent,
               imagename: '/public/image/이미지없음.png',
@@ -362,6 +366,22 @@ function 로그인했냐(요청, 응답, next) {
   }
 }
 
+// 인증관련
+
+// id를 이용하여 세션을 저장시키는 코드(로그인 성공시 발동)
+passport.serializeUser(function (user, done) {
+  done(null, user.userId)
+})
+
+// 이 세션 데이터를 가진 사람을 DB에서 찾아주세요
+passport.deserializeUser(function (아이디, done) {
+  // deserializeUser() : DB에서 위에 있던 user.id로 유저를 찾은 뒤에 유저 정보를 아래 done의 중괄호에 넣음
+  db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
+    done(null, 아이디결과)
+  })
+})
+
+// 로컬로그인
 // LocalStrategy 인증방법
 passport.use(new LocalStrategy({
   usernameField: 'userId',
@@ -383,25 +403,57 @@ passport.use(new LocalStrategy({
   })
 }));
 
-// id를 이용하여 세션을 저장시키는 코드(로그인 성공시 발동)
-passport.serializeUser(function (user, done) {
-  done(null, user.userId)
-})
 
-// 이 세션 데이터를 가진 사람을 DB에서 찾아주세요
-passport.deserializeUser(function (아이디, done) {
-  // deserializeUser() : DB에서 위에 있던 user.id로 유저를 찾은 뒤에 유저 정보를 아래 done의 중괄호에 넣음
-  db.collection('user').findOne({ userId: 아이디 }, function (에러, 아이디결과) {
-    done(null, 아이디결과)
-  })
-})
-passport.deserializeUser(function (닉네임, done) {
-  db.collection('user').findOne({ userNick: 닉네임 }, function (에러, 닉네임결과) {
-    done(null, 닉네임결과)
-  })
-})
+
+//구글 로그인
+// GoogleStrategy 인증방법
+passport.use(
+  new GoogleStrategy({
+    clientID: '403235330551-kicomc6gug5h9b19f07jpbo5pp96g2g6.apps.googleusercontent.com',
+    clientSecret: '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',
+    callbackURL: 'http://localhost:8080/auth/google/callback',
+  },
+  function (request, accessToken, refreshToken, profile, done) {
+    const { email, name } = profile._json;
+      // console.log('구글이메일 = ' + email)
+      // console.log('구글네임 = ' + name)
+      var user;
+      db.collection('user').findOne({ userEmail: email }, function (에러, 결과) {
+        // console.log('결과 = '+JSON.stringify(결과))
+        user = 결과;
+        if (user) {
+          // 이미 가입된 구글 프로필이면 성공
+          return done(null, user);
+        } else {
+          // 가입되지 않는 유저면 회원가입 시키고 로그인을 시킨다
+          db.collection('counter').findOne({ name: "유저수" }, function (에러, 유저수결과) {
+            var 유저수 = 유저수결과.totalUser;
+            db.collection('counter').updateOne({ name: '유저수' }, { $inc: { totalUser: 1 } }, function (에러, 결과) {
+              db.collection('user').insertOne({ 
+                _id: 유저수 + 1, 
+                userName: name, 
+                userId: email, 
+                userNick: name, 
+                userEmail: email });
+              })
+            })
+          }
+          return done(null, user);
+        })
+      }
+      )
+      );
+      
+// 프로파일과 이메일 정보를 받는다.
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+      
+//위에서 구글 서버 로그인이 되면, redirect url 설정에 따라 이쪽 라우터로 오게 된다. 인증 코드를 박게됨
+app.get('/auth/google/callback', passport.authenticate('google', {
+  successRedirect: '/userIndex',
+  failureRedirect: '/login',
+}))
+
 //==========================================
-
 
 //이미지 업로드
 let multer = require('multer');
@@ -677,64 +729,3 @@ app.post('/findPw', function (요청, 응답) {
 //==========================================
 
 
-//구글 로그인
-
-passport.serializeUser(function (user, done) {
-  console.log('serialize', user);
-  done(null, user.id);
-});
-
-// 사용자가 페이지를 방문할 때마다 호출되는 함수
-// done(null, id)로 사용자의 정보를 각 request의 user 변수에 넣어준다.
-passport.deserializeUser(function (id, done) {
-  console.log('deserialize', id);
-  done(null, id);
-});
-
-passport.use(
-  new GoogleStrategy({
-    clientID: '~~부여받은아이디',
-    clientSecret: '~~부여받비밀번호~~',
-    callbackURL: 'http://localhost:8080/auth/google/callback',
-  },
-    function (request, accessToken, refreshToken, profile, done) {
-      const { email, name } = profile._json;
-      // console.log('구글이메일 = ' + email)
-      // console.log('구글네임 = ' + name)
-      var user;
-      db.collection('user').findOne({ userEmail: email }, function (에러, 결과) {
-        // console.log('결과 = '+JSON.stringify(결과))
-        user = 결과;
-        if (user) {
-          // 이미 가입된 구글 프로필이면 성공
-          return done(null, user);
-        } else {
-          // 가입되지 않는 유저면 회원가입 시키고 로그인을 시킨다
-          db.collection('counter').findOne({ name: "유저수" }, function (에러, 유저수결과) {
-            var 유저수 = 유저수결과.totalUser;
-            db.collection('counter').updateOne({ name: '유저수' }, { $inc: { totalUser: 1 } }, function (에러, 결과) {
-             db.collection('user').insertOne({ 
-                _id: 유저수 + 1, 
-                userName: name, 
-                userId: email, 
-                userNick: name, 
-                userEmail: email });
-              })
-            })
-          }
-          return done(null, user);
-      })
-    }
-  )
-);
-
-// 프로파일과 이메일 정보를 받는다.
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-//? 위에서 구글 서버 로그인이 되면, redirect url 설정에 따라 이쪽 라우터로 오게 된다. 인증 코드를 박게됨
-app.get('/auth/google/callback', passport.authenticate('google', {
-  successRedirect: '/userIndex',
-  failureRedirect: '/login',
-}))
-
-//==========================================
