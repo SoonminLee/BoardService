@@ -409,8 +409,8 @@ passport.use(new LocalStrategy({
 // GoogleStrategy 인증방법
 passport.use(
   new GoogleStrategy({
-    clientID: '',
-    clientSecret: '',
+    clientID: '클라이언트아이디',
+    clientSecret: '클라이언트비밀번호',
     callbackURL: 'http://localhost:8080/auth/google/callback',
   },
   function (request, accessToken, refreshToken, profile, done) {
@@ -728,21 +728,19 @@ app.post('/findPw', function (요청, 응답) {
 })
 //==========================================
 
-
 //chat GPT
-
 app.get("/chatGPT", function(요청, 응답){
 응답.render(__dirname + '/views/chatGPT.ejs', {사용자: 요청.user})
 })
 
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: '',
+
+  apiKey: 'apikey',
 });
 const openai = new OpenAIApi(configuration);
 app.post('/chatGPT', async function(요청, 응답){
   var 질문내용 = 요청.body.question;
-  console.log(질문내용)
   const response = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: 질문내용,
