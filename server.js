@@ -737,11 +737,12 @@ app.get("/chatGPT", function(요청, 응답){
 
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 const openai = new OpenAIApi(configuration);
 app.post('/chatGPT', async function(요청, 응답){
   var 질문내용 = 요청.body.question;
+  console.log(질문내용)
   const response = await openai.createCompletion({
     model: "text-davinci-003",
     prompt: 질문내용,
@@ -754,8 +755,20 @@ app.post('/chatGPT', async function(요청, 응답){
       응답.send(response.data.choices[0].text)
     }
   }
-  
 })
 
+
+//==========================================
+
+// 실시간 채팅방
+app.get('/socket', function(요청, 응답 ){
+  응답.render('socket.ejs', { 사용자: 요청.user})
+})
+
+io.on('connection', function(socket){
+  socket.on('user-send', function(data){
+    io.emit('broadcast', data)
+  })
+})
 
 //==========================================

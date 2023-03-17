@@ -17,34 +17,35 @@
 <body>
     <%- include ('usernav.html') %>
 
-        <h4>ChatGPT Zone</h4>
+        <h4>Chat Zone</h4>
         <div class="container">
             <div class="mb-3">
-                <textarea class="form-control" id="question" rows="3" placeholder="ChatGPT에게 질문 할 수 있습니다."></textarea>
+                <textarea class="form-control" id="UserMessage" rows="3" placeholder=""></textarea>
             </div>
-            <button class="mb-3 btn btn-outline-primary btn-sm" id="submitBtn">질문하기</button>
-            <div>
-                <textarea class="form-control" id="answer" rows="5" placeholder="답변까지 조금 시간이 걸릴 수 있습니다. 기다려주세요."></textarea>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="mb-3 btn btn-outline-primary btn-sm" id="submitBtn">전송하기</button>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" id="Messages" rows="10" ></textarea>
             </div>
         </div>
 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
         <script>
-            $('#submitBtn').click(function(){
-                var 질문내용 = $('#question').val();
-                $.ajax({
-                    url: "/chatGPT",
-                    type: "POST",
-                    data: {
-                        question: 질문내용,
-                    },
-                    success: function(data){
-                        if(data){
-                            $('#answer').val(data.replace(/\n/g, ""))
-                        }
-                    }
-                })
-            })
+
+          var socket = io();
+          // 유저가 서버에게 메시지 보내기
+          $('#submitBtn').click(function(){
+            var 유저메시지 = $('#UserMessage').val();
+            var 유저닉 =  '<%= 사용자.userNick %>'
+            socket.emit('user-send', `${유저닉} : ${유저메시지} \n`)
+          })
+          //서버에서 유저에게 메시지 보내기
+          socket.on('broadcast', function(data){
+            $('#Messages').append(data);
+          })
+
         </script>
 
         <!-- Optional JavaScript -->
