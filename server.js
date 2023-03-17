@@ -35,16 +35,19 @@ app.use(passport.session());
 //이메일 전송을위한 라이브러리(비밀번호찾기에 사용)
 const nodemailer = require('nodemailer');
 //===========================
+// .env로 환경변수 관리하기위한 라이브러리
+require('dotenv').config()
+//===========================
 
 // mongoDB 접속 코드
 var db;
-const url = `mongodb+srv://admin:xkfanem1!@cluster0.8wei56h.mongodb.net/?retryWrites=true&w=majority`
+const url = process.env.DB_URL
 const options = { useUnifiedTopology: true };
 const MongoClient = require('mongodb').MongoClient
 MongoClient.connect(url, function (에러, client) {
   db = client.db('BoardService');
-  http.listen(8080, function () {
-    console.log('listening on 8080');
+  http.listen(process.env.PORT, function () {
+    console.log('서버 open');
   })
 })
 //===========================
@@ -410,7 +413,7 @@ passport.use(new LocalStrategy({
 passport.use(
   new GoogleStrategy({
     clientID: '403235330551-kicomc6gug5h9b19f07jpbo5pp96g2g6.apps.googleusercontent.com',
-    clientSecret: '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',
+    clientSecret: process.env.CLIENTSECRET,
     callbackURL: 'http://localhost:8080/auth/google/callback',
   },
   function (request, accessToken, refreshToken, profile, done) {
@@ -737,7 +740,7 @@ app.get("/chatGPT", function(요청, 응답){
 
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: process.env.APIKEY,
 });
 const openai = new OpenAIApi(configuration);
 app.post('/chatGPT', async function(요청, 응답){
