@@ -729,13 +729,13 @@ app.post('/findPw', function (요청, 응답) {
 //==========================================
 
 //chat GPT
-
 app.get("/chatGPT", function(요청, 응답){
 응답.render(__dirname + '/views/chatGPT.ejs', {사용자: 요청.user})
 })
 
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
+
   apiKey: 'apikey',
 });
 const openai = new OpenAIApi(configuration);
@@ -753,8 +753,20 @@ app.post('/chatGPT', async function(요청, 응답){
       응답.send(response.data.choices[0].text)
     }
   }
-  
 })
 
+
+//==========================================
+
+// 실시간 채팅방
+app.get('/socket', function(요청, 응답 ){
+  응답.render('socket.ejs', { 사용자: 요청.user})
+})
+
+io.on('connection', function(socket){
+  socket.on('user-send', function(data){
+    io.emit('broadcast', data)
+  })
+})
 
 //==========================================
