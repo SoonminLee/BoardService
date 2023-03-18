@@ -79,29 +79,17 @@ app.get('/signUp', function (요청, 응답) {
 })
 //=====================================
 // /login 페이지로 이동
+var flash = require('connect-flash');
+app.use(flash());
 app.get('/login', function (요청, 응답) {
-  응답.render('login.ejs')
+  var msg;
+  var errMsg = 요청.flash('error');
+  if(errMsg) msg = errMsg;
+  응답.render('login.ejs',{ message: msg })
 })
 //=====================================
-// /userIndex 페이지로 이동(로그인한사람만 입장)
 
-// app.get('/userIndex', 로그인했냐, function (요청, 응답) {
-//   var page = Number(요청.query.pageNum || 1);
-//   var perPage = Number(요청.query.perPage || 10);
-//   db.collection('counter').findOne({ name: "게시물개수" }, function (에러, 결과) {
-//     TotalPost = 결과.totalPost;
-//     db.collection('post').find().
-//       skip((page - 1) * perPage).
-//       limit(perPage).toArray(function (에러, 퍼페이지결과) {
-//         var totalPage = Math.ceil(TotalPost / perPage)
-//         var num = page === 1 ? 0 : (page - 1) * perPage;
-//         응답.render(__dirname + '/views/userIndex.ejs', { 사용자: 요청.user, num: num + 1, totalPage: totalPage, posts: 퍼페이지결과, perPage: perPage })
-//       })
-//   })
-// })
-//=====================================
 // /userIndex 페이지로 이동(로그인한사람만 입장)
-
 app.get('/userIndex', 로그인했냐, async function (요청, 응답) {
   var page = Number(요청.query.pageNum || 1);
   var perPage = Number(요청.query.perPage || 10);
@@ -341,12 +329,10 @@ app.put('/edit', 로그인했냐, function (요청, 응답) {
 
 // login 기능
 app.post('/login', passport.authenticate('local', {
-  failureRedirect: '/login'
-}), function (요청, 응답) {
-  // 1. 로그인하면 아이디 비번 검사
-  응답.redirect('/userIndex')
-
-})
+  successRedirect : '/userIndex',
+  failureRedirect: '/login',
+  failureFlash : true
+}))
 // logout 기능
 app.get('/logout', function (req, res) {
   // req.logout();
@@ -397,7 +383,7 @@ passport.use(new LocalStrategy({
     if (에러) return done(에러)
     // 여기부터 중요! DB에 아이디가 없을때 실행하고, 있긴한데 비번이 틀렸을때 실행(if문으로 분기)
     // done(서버에러 : 보통 null , 성공시사용자DB데이터 : 아이디/비번 안맞을때 false, 에러메세지)
-    if (!결과) return done(null, false, { message: '존재하지않는 아이디요' })
+    if (!결과) return done(null, false, { message: '존재하지않는 아이디입니다.' })
     if (createHashedPassword(입력한비번) == 결과.userPw) {
       return done(null, 결과)
     } else {
@@ -694,40 +680,42 @@ function createRandomPassword(variable, passwordLength) {
 app.post('/findPw', function (요청, 응답) {
   var 아이디 = 요청.body.아이디;
   db.collection('user').findOne({ userId: 아이디 }, function (에러, 결과) {
-    var 유저이메일 = 결과.userEmail
-    var 수정정보 = {
-      userPw: createHashedPassword(임시비밀번호)
+    if(결과 == null){
+      응답.send("아이디없음")
+    } else{
+      var 유저이메일 = 결과.userEmail
+      var 수정정보 = {
+        userPw: createHashedPassword(임시비밀번호)
+      }
+      db.collection('user').updateOne({ userId: 아이디 }, { $set: 수정정보 }, function (에러, 결과) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          port: 465,
+          secure: true, // true for 465, false for other ports
+          auth: { // 이메일을 보낼 계정 데이터 입력
+            user: 'soonmin07@gmail.com',
+            pass: 'smwhyytnnddetece',
+          },
+        });
+        const emailOptions = { // 옵션값 설정
+          from: 'BoardService@gmail.com',
+          to: 유저이메일,
+          subject: 'BoardService에서 임시비밀번호를 알려드립니다.',
+          html:
+            "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
+            + '<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>',
+        };
+        transporter.sendMail(emailOptions, (err, info) => {
+          if (err) {
+            console.log("err = ", err);
+            return
+          }
+          console.log("ok", info);
+        }); //전송
+      })
+      응답.send('메일발송성공')
     }
-    db.collection('user').updateOne({ userId: 아이디 }, { $set: 수정정보 }, function (에러, 결과) {
-
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: { // 이메일을 보낼 계정 데이터 입력
-          user: 'soonmin07@gmail.com',
-          pass: 'smwhyytnnddetece',
-        },
-      });
-      const emailOptions = { // 옵션값 설정
-        from: 'BoardService@gmail.com',
-        to: 유저이메일,
-        subject: 'BoardService에서 임시비밀번호를 알려드립니다.',
-        html:
-          "<h1 >BoardService에서 새로운 비밀번호를 알려드립니다.</h1> <h2> 비밀번호 : " + 임시비밀번호 + "</h2>"
-          + '<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>'
-        ,
-      };
-      transporter.sendMail(emailOptions, (err, info) => {
-        if (err) {
-          console.log("err = ", err);
-          return
-        }
-        console.log("ok", info);
-      }); //전송
-    })
-  })
-  응답.send('메일발송성공')
+})
 })
 //==========================================
 

@@ -37,9 +37,10 @@
           var socket = io();
           // 유저가 서버에게 메시지 보내기
           $('#submitBtn').click(function(){
-            var 유저메시지 = $('#UserMessage').val();
-            var 유저닉 =  '<%= 사용자.userNick %>'
-            socket.emit('user-send', `${유저닉} : ${유저메시지} \n`)
+              var 유저메시지 = $('#UserMessage').val();
+              var 유저닉 =  '<%= 사용자.userNick %>'
+              socket.emit('user-send', `${유저닉} : ${유저메시지} \n`)
+              $('#UserMessage').val('');
           })
           //서버에서 유저에게 메시지 보내기
           socket.on('broadcast', function(data){

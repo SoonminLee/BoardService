@@ -21,16 +21,16 @@
             <div class="w-50" style="float: none; margin:0 auto;">
                 <form action="/login" method="POST">
                     <div class="mb-3">
-                        <label class="form-label" for="id">아이디</label>
+                        <section class="message"><strong><%= message %></strong></section>
+                        <label class="form-label" for="id">아이디</label>  
                         <input class="form-control" type="text" name="userId" id="userId" />
-
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="id">비밀번호</label>
-                        <input class="form-control" type="password" name="userPw" />
+                        <input class="form-control" type="password" name="userPw" id="userPw"/>
                     </div>
                     <div>
-                        <button class="btn btn-outline-primary btn-sm" type="submit">로그인</button>
+                        <button class="btn btn-outline-primary btn-sm" type="submit" id="loginBtn">로그인</button>
                     </form>
                     <button style="float: right" class="btn btn-outline-danger btn-sm" id="findPw">비밀번호찾기</button>
                     <form action="/auth/google" method="GET">
@@ -42,6 +42,14 @@
         </div>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script>
+            $('#loginBtn').click(function(e){
+                var 아이디 = $('#userId').val()
+                var 비밀번호 = $('#userPw').val()
+                if(아이디 == '' || 비밀번호 == ''){
+                    alert('아이디와 비밀번호는 필수 입력 사항입니다.')
+                    e.preventDefault();
+                }
+            })
             $("#findPw").click(function () {
                 var 아이디 = $('#userId').val()
                 if (아이디 === '') {
@@ -54,8 +62,11 @@
                             아이디: 아이디,
                         },
                         success: function (data) {
-                            if (data === "메일발송성공") {
-                                alert("메일 발송되었으니 확인하시오")
+                            console.log(data)
+                            if(data == '아이디없음'){
+                                alert("아이디가 존재하지않습니다.")
+                            } else if (data === "메일발송성공") {
+                               alert("메일 발송되었으니 확인하시오")
                                 $(location).attr("href", "/login")
                             }
                         }
