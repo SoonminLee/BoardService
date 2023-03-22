@@ -628,11 +628,19 @@ app.put('/userEdit', 로그인했냐, function (요청, 응답) {
   var 새비밀번호 = 요청.body.새비밀번호;
   var 닉네임 = 요청.body.닉네임;
   var 이메일 = 요청.body.이메일;
-  var 수정정보 = {
-    userName: 이름,
-    userPw: createHashedPassword(새비밀번호),
-    userNick: 닉네임,
-    userEmail: 이메일
+  if(새비밀번호 == ''){
+    var 수정정보 = {
+      userName: 이름,
+      userNick: 닉네임,
+      userEmail: 이메일
+    }
+  } else{
+    var 수정정보 = {
+      userName: 이름,
+      userPw: createHashedPassword(새비밀번호),
+      userNick: 닉네임,
+      userEmail: 이메일
+    }
   }
   // 기존의 아이디면 넘어가고 아니라면 아이디중복체크(닉네임, 이메일 동일)
   db.collection('user').findOne({ userId: 요청.user.userId }, function (에러, 결과) {
