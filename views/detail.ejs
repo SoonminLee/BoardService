@@ -130,10 +130,11 @@
             
             // 댓글수정
             var 댓글개수 = "<%= comment.length %>";
+            var j;
             for(i=0; i < 댓글개수;i++){
+                j = i;
                 $(`#commentEdit${i}`).click(function(e){
                     // j는 i값과 동일함.
-                    var j = $(this).data('commentnum')-1;
                     var 글번호 = e.target.dataset.id;
                     var 댓글내용 = $(`#commentList-input${j}`).val();
                     var 댓글번호 = e.target.dataset.commentnum;
